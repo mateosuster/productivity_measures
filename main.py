@@ -28,6 +28,5 @@ path = "data/bea/majority_owned_nonbank"
 data=create_data(path, type= 'majority_owned')
 data = calculos(data,type= 'majority_owned')
 
-data.merge( continents, how= "left", left_on="country", right_on="Country"   ).drop("Country", axis=1)
-data.to_csv("results/bea/majority_owned_nonbank/data_majority_owned_nonbank.csv", index=False)
+data.merge( continents, how= "left", left_on="country", right_on="Country"   ).drop("Country", axis=1).to_csv("results/bea/majority_owned_nonbank/data_majority_owned_nonbank.csv", index=False)
 
