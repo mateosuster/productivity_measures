@@ -13,7 +13,7 @@ axis_size= 5
 strip_size= 6
 
 #data
-data <- read.csv("../results/bea/majority_owned_nonbank/data_majority_owned_nonbank.csv") %>% 
+data <- read.csv("./results/bea/majority_owned_nonbank/data_majority_owned_nonbank.csv") %>% 
   filter(sector != "Other Industries") %>% 
   mutate(sector = case_when(sector == "Electrical equipment, appliances, and components" ~
                               "Electrical equipment",
