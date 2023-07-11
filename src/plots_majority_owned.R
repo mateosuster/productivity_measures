@@ -12,16 +12,15 @@ text_size= 30
 axis_size= 5
 strip_size= 6
 
-#data
 data <- read.csv("./results/bea/majority_owned_nonbank/data_majority_owned_nonbank.csv") %>% 
   filter(sector != "Other Industries") %>% 
   mutate(sector = case_when(sector == "Electrical equipment, appliances, and components" ~
                               "Electrical equipment",
                             sector == "Finance (except depository institutions) and insurance" ~
-                              "Finance without depository",
+                              "Finance and insurance", # "Finance without depository",
                             sector == "Professional, scientific, and technical services" ~
-                              "Professional services",
-                            T ~ sector ))
+                                "Professional services",
+                              T ~ sector ))
 
 # TG
 data %>%
@@ -40,7 +39,7 @@ data %>%
         axis.title  = element_blank() ,
         strip.text = element_text(size=strip_size))+
   scale_color_manual(values=wes_palette(n=4, name="Moonrise2")) #"Royal2"
-ggsave("../results/bea/majority_owned_nonbank/tg_eu_sa_all_2.png")
+ggsave("./results/bea/majority_owned_nonbank/tg_eu_sa_all_2.png")
 
 
 
@@ -64,7 +63,7 @@ data %>%
         axis.title  = element_blank() ,
         strip.text = element_text(size=strip_size+5))+
   scale_color_brewer(palette="Paired")
-ggsave("../results/bea/majority_owned_nonbank/tg_sa_2.png", width = 15, height=10)
+ggsave("./results/bea/majority_owned_nonbank/tg_sa_2.png", width = 15, height=10)
 
 data %>%
   filter( Continent %in% c("South America") | country %in% c("All Countries Total",
@@ -82,7 +81,7 @@ data %>%
         axis.title  = element_blank() ,
         strip.text = element_text(size=10))+
   scale_color_brewer(palette="Paired")
-ggsave("../results/bea/majority_owned_nonbank/tg_sa_eu_all.png", width = 15, height=10)
+ggsave("./results/bea/majority_owned_nonbank/tg_sa_eu_all.png", width = 15, height=10)
 
 
 data %>%
@@ -103,10 +102,17 @@ data %>%
         axis.title  = element_blank() ,
         strip.text = element_text(size=5))+
   scale_fill_manual(values=wes_palette(n=3, name="Royal2"))
-ggsave("../results/bea/majority_owned_nonbank/tg_eu_sa_all_avg.png")
+ggsave("./results/bea/majority_owned_nonbank/tg_eu_sa_all_avg.png")
 
 # PT
-data %>%
+data_prod <- data %>%
+    select(c(sector, country, Continent , year,value_added, employment, PT)) %>%
+    # filter(PT > 0 | (is.finite(PT))) %>% 
+    filter(PT > 0 &  employment > 0 ) %>% 
+    arrange(desc(PT)) #    arrange(PT)
+
+  
+data_prod %>%
   filter( country %in% c("South America", "Europe") ) %>%
   ggplot(aes(year, PT*10e3, fill = country)) +
   geom_col(position = "dodge")+
@@ -122,21 +128,21 @@ data %>%
         axis.title.y  = element_text(size = 3.9) ,
         strip.text = element_text(size=3.9))+
   scale_fill_manual(values=wes_palette(n=3, name="Royal1"))
-ggsave("../results/bea/majority_owned_nonbank/pt_eu_sa.png")
+ggsave("./results/bea/majority_owned_nonbank/pt_eu_sa.png")
 
-data %>%
+data_prod %>%
   filter( Continent %in% c("South America") ) %>%
   left_join(data %>% 
               filter(country == "Europe") %>% 
               select(year, sector, PTeu=PT) ,
             by = c("year", "sector" )) %>%
-  mutate(PTrel = PT/PTeu - 1) %>% 
+  mutate(PTrel = PT/PTeu ) %>% 
   ggplot(aes(year, PTrel, color = country)) +
   geom_line(size = 0.3)+
   facet_wrap(~sector, scales = "free")+
   scale_y_continuous(labels = scales::percent)+
   theme_minimal()+
-  labs(title= "Brecha de productividad de inversiones de EEUU",
+  labs(title= "Brecha de productividad de inversiones de EEUU", 
        subtitle = "América del Sur relativa a total Europa")+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -145,7 +151,8 @@ data %>%
         axis.title  = element_blank()  ,
         strip.text = element_text(size=5))+
   scale_color_brewer(palette="Paired")
-ggsave("../results/bea/majority_owned_nonbank/pt_eu_sa_relativa.png")
+ggsave("./results/bea/majority_owned_nonbank/pt_eu_sa_relativa.png")
+
 
 
 data %>%
@@ -168,7 +175,7 @@ data %>%
         axis.title.y  = element_text(size = 5) ,
         strip.text = element_text(size=5))+
   scale_fill_manual(values=wes_palette(n=3, name="Moonrise3"))
-ggsave("../results/bea/majority_owned_nonbank/pt_eu_sa_all_avg.png")
+ggsave("./results/bea/majority_owned_nonbank/pt_eu_sa_all_avg.png")
 
 data %>%
   filter( country %in% c("South America", "European Union", "All Countries Total") &
@@ -194,7 +201,7 @@ data %>%
         axis.title.y  = element_text(size = text_size) ,
         strip.text = element_text(size=text_size))+
   scale_fill_manual(values=wes_palette(n=3, name="Moonrise3"))
-ggsave("../results/bea/majority_owned_nonbank/pt_eu_sa_all_avg_sectors.png", width = 15, height=10)
+ggsave("./results/bea/majority_owned_nonbank/pt_eu_sa_all_avg_sectors.png", width = 15, height=10)
 
 
 #salario
@@ -224,7 +231,7 @@ data %>%
         axis.text.x = element_blank(),
         strip.text = element_text(size=text_size))+
   scale_fill_brewer(palette="Paired")
-ggsave("../results/bea/majority_owned_nonbank/salario_avg_sectors.png", width = 15, height = 10)
+ggsave("./results/bea/majority_owned_nonbank/salario_avg_sectors.png", width = 15, height = 10)
 
 #tg y pt
 data %>%
@@ -260,7 +267,7 @@ data %>%
         strip.text = element_text(size=text_size),
         strip.placement = "outside" )+
   scale_fill_brewer(palette="Paired")
-ggsave("../results/bea/majority_owned_nonbank/tg_y_pt_eu_sa_all_avg_sectors_more_countries.png", width = 20, height = 15)
+ggsave("./results/bea/majority_owned_nonbank/tg_y_pt_eu_sa_all_avg_sectors_more_countries.png", width = 20, height = 15)
 
 data %>%
   filter( country %in% c("South America", "European Union", "All Countries Total") ) %>%
@@ -282,7 +289,7 @@ data %>%
         axis.text.y = element_text(size= 14),
         strip.text = element_text(size=14))+
   scale_color_manual(values=wes_palette(n=3, name="GrandBudapest1"))
-ggsave("../results/bea/majority_owned_nonbank/tg_y_pt_eu_sa_all_scatter.png", width = 15, height = 10)
+ggsave("./results/bea/majority_owned_nonbank/tg_y_pt_eu_sa_all_scatter.png", width = 15, height = 10)
 
 data %>%
   filter( country %in% c("South America", "European Union", "All Countries Total",
@@ -312,4 +319,4 @@ data %>%
         axis.text = element_text(size=text_size),
         strip.text = element_text(size=text_size-5))+
   scale_color_brewer(palette="Paired")
-ggsave("../results/bea/majority_owned_nonbank/tg_y_pt_eu_sa_all_avg_scatter_selected_countries.png", width = 15, height = 10)
+ggsave("./results/bea/majority_owned_nonbank/tg_y_pt_eu_sa_all_avg_scatter_selected_countries.png", width = 15, height = 10)
