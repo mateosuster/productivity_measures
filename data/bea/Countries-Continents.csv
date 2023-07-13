@@ -144,28 +144,28 @@ Europe,Switzerland
 Europe,Ukraine
 Europe,United Kingdom
 Europe,Vatican City
-North America,Antigua and Barbuda
-North America,Bahamas
-North America,Barbados
-North America,Belize
+Central America and the Caribbean,Antigua and Barbuda
+Central America and the Caribbean,Bahamas
+Central America and the Caribbean,Barbados
+Central America and the Caribbean,Belize
 North America,Canada
-North America,Costa Rica
-North America,Cuba
-North America,Dominica
-North America,Dominican Republic
-North America,El Salvador
-North America,Grenada
-North America,Guatemala
-North America,Haiti
-North America,Honduras
-North America,Jamaica
-North America,Mexico
-North America,Nicaragua
-North America,Panama
-North America,Saint Kitts and Nevis
-North America,Saint Lucia
-North America,Saint Vincent and the Grenadines
-North America,Trinidad and Tobago
+Central America and the Caribbean,Costa Rica
+Central America and the Caribbean,Cuba
+Central America and the Caribbean,Dominica
+Central America and the Caribbean,Dominican Republic
+Central America and the Caribbean,El Salvador
+Central America and the Caribbean,Grenada
+Central America and the Caribbean,Guatemala
+Central America and the Caribbean,Haiti
+Central America and the Caribbean,Honduras
+Central America and the Caribbean,Jamaica
+Central America and the Caribbean,Mexico
+Central America and the Caribbean,Nicaragua
+Central America and the Caribbean,Panama
+Central America and the Caribbean,Saint Kitts and Nevis
+Central America and the Caribbean,Saint Lucia
+Central America and the Caribbean,Saint Vincent and the Grenadines
+Central America and the Caribbean,Trinidad and Tobago
 North America,US
 Oceania,Australia
 Oceania,Fiji
@@ -193,3 +193,10 @@ South America,Peru
 South America,Suriname
 South America,Uruguay
 South America,Venezuela
+Asia,Hong Kong
+North America,Bermuda
+Europe,Czech Republic
+Central America and the Caribbean,Netherlands Antilles
+Asia,Russia
+Asia,South Korea
+Asia,Taiwan
