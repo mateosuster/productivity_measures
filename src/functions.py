@@ -58,11 +58,12 @@ def preprocessing(x, var="unallocated", unit = "no_unit", desagregation = "2dig"
 
 def create_data( path, desagregation = "2dig",type= 'all_parent'):
     files = os.listdir(path)
-    print(f"archivos concatenados de {type}:")
+    desagregation = desagregation if type == 'all_parent' else None
+    print(f'############################### Archivos concatenados de {type}, desagregacion {desagregation}: ###############################')
     dfs = []
     if type== 'all_parent':
         for file in files:
-        
+            print( f'concatenando {file} de All Parents')
             if file == "employment.csv":
                 unit = "thousands"
                 skip = 6
@@ -77,8 +78,8 @@ def create_data( path, desagregation = "2dig",type= 'all_parent'):
             df = preprocessing(df, var_name, unit, desagregation)
             
             dfs.append(df)
-            print(file)
-        print("fin de archivos")
+        print(f'######## fin de archivos de {type} ########', end = '\n\n')
+        
     
         data = pd.concat(dfs, ignore_index=True)
         data = data.pivot(index = ["sector", "year"], columns= "variable", values = "value" )
@@ -110,11 +111,10 @@ def create_data( path, desagregation = "2dig",type= 'all_parent'):
             
             df = pd.read_csv(path+"/"+file, skiprows = 5)
             df = preprocessing(x=df, var = var_name, type= 'majority_owned')
-            print( " ultimo año", max(df.year))
+            print( " ultimo año", max(df.year), end = '\n\n')
             dfs.append(df)
-        
-        
-        print("fin de archivos")
+            
+        print(f'######## fin de archivos de {type} ########')
         
         data = pd.concat(dfs, ignore_index=True)
         data.drop(["sector_year", "unit"], axis=1, inplace=True)
@@ -130,7 +130,7 @@ def create_data( path, desagregation = "2dig",type= 'all_parent'):
 
 def calculos(x, type= 'all_parent'):
     if type== 'all_parent':
-        x["employment"] = x.employment * 1000
+        x["employment"] = x.employment * 1000 #originalmente en miles, se lo lleva a cantidades
         x["CI"] = x.total_sales - x.value_added
         # x["Kcca_1"] = x.total_assets - x.net_property_plant_and_equipment # Kcca_1 = inventarios
         # x["r"] = x.total_sales / x.Kcca_1 # x.net_income / x.Kcc # x.total_sales / x.Kcca 
@@ -148,13 +148,20 @@ def calculos(x, type= 'all_parent'):
         # x["TPr"] =  x.net_income/( x.compensation_employees/ x.r)
     
     elif type== 'majority_owned':
-        x["employment"] = x.employment * 1000
+        x["employment"] = x.employment * 1000 #originalmente en miles, se lo lleva a cantidades
         x["CI"] = x.total_sales - x.value_added
-        x["Kcca_1"] = x.asset - x.net_property_plant_and_equipment # Kcca_1 = inventarios
-        x["r"] = x.net_income / x.Kcca_1 # x.total_sales / x.Kcca 
-        x["Kcca_2"] = x.CI / x.r # Kcca_2 
-        x["Kva"] = x.compensation_employees / x.r 
-        x["TG"] = x.net_income / (x.net_property_plant_and_equipment + x.Kcca_1 + x.Kva )
+        x["Kcca"] = x.asset - x.net_property_plant_and_equipment # Kcca_1 = inventarios
+        x["r_1"] = x.net_income / x.Kcca # x.total_sales / x.Kcca 
+        # x["r_2"] = x.total_sales / x.Kcca 
+        # x["r_3"] = 7  # 
+        # x["Kcca_1"] = x.CI / x.r_1 # Kcca_1 
+        # x["Kcca_2"] = x.CI / x.r_2 #  
+        # x["Kcca_3"] = x.CI / x.r_3 #  
+        x["Kva"] = x.compensation_employees / x.r_1 
+        x["TG"] = x.net_income / (x.net_property_plant_and_equipment + x.Kcca + x.Kva )
+        # x["TG_1"] = x.net_income / (x.net_property_plant_and_equipment + x.Kcca_1 + x.Kva )
+        # x["TG_2"] = x.net_income / (x.net_property_plant_and_equipment + x.Kcca_2 + x.Kva )
+        # x["TG_3"] = x.net_income / (x.net_property_plant_and_equipment + x.Kcca_3 + x.Kva )
         x["TGstock"] = x.net_income / x.net_property_plant_and_equipment #ex TGsr
         x["TGasset"] = x.net_income / x.asset
         # x["TGequity"] = x.net_income / x.equity
@@ -163,5 +170,5 @@ def calculos(x, type= 'all_parent'):
         x["COtec"] = x.net_property_plant_and_equipment /  x.employment
         x["COv"] = x.net_property_plant_and_equipment /  x.compensation_employees
         x["TP"] =  x.net_income/ x.compensation_employees
-        x["TPr"] =  x.net_income/( x.compensation_employees/ x.r)
+        x["TPr"] =  x.net_income/( x.compensation_employees/ x.r_1)
     return x

@@ -14,7 +14,7 @@ file_path_all_parent_2dig = "results/bea/all_parent/all_parent_2dig.csv"
 file_path_all_parent_4dig = "results/bea/all_parent/all_parent_4dig.csv"
 file_path_maj_own = "results/bea/majority_owned_nonbank/data_majority_owned_nonbank.csv"
 
-if (not os.path.exists(file_path_all_parent_2dig)) and  (not os.path.exists(file_path_all_parent_4dig)) and  (not os.path.exists(file_path_maj_own))  :
+if (not os.path.exists(file_path_all_parent_2dig)) or  (not os.path.exists(file_path_all_parent_4dig)) or  (not os.path.exists(file_path_maj_own))  :
     #all_parents
     path = "data/bea/all_parent"
 
