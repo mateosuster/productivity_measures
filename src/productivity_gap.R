@@ -1,0 +1,133 @@
+library(tidyverse)
+library(readxl)
+library(lubridate)
+
+# setwd("C:/Archivos/datos/bea/codigos/majority_owned/")
+# setwd("C:/Documents/data/bea/codigos/majority_owned/")
+
+generar_indice <- function(serie,fecha, fecha_base){
+  
+  valor_base <- serie[which(fecha==fecha_base)]
+  
+  # Check if valor_base is empty
+  if (length(valor_base) == 0) {
+    warning("No matching date found for fecha_base. Returning NA.")
+    return(NA)
+  }
+  
+  return (serie/valor_base)
+}
+
+results_path = './results/bea/majority_owned_nonbank/'
+
+#params
+title_size=40
+text_size= 30
+axis_size= 5
+strip_size= 6
+
+
+data <- read.csv("./results/bea/majority_owned_nonbank/data_majority_owned_nonbank_procesado.csv") 
+tcp_df <- read.csv('./results/indice_tcp.csv')
+# Create a vector of unique sectors
+sectors <- unique(data$sector)
+
+# ISO Codes
+isocodes<- read_excel("./data/ocde/34107835.xls")  %>%
+  select('CODE','country'=  'Country')
+
+# PPI
+## PPI benchmark
+ppi <- read.csv("./data/ocde/DP_LIVE_27112023180609408.csv") %>% 
+  filter(SUBJECT == 'TOT_MKT' , FREQUENCY == 'A', MEASURE == 'IDX2015') %>% 
+  mutate(fecha = parse_date_time(TIME, orders = "y"),
+         fecha = ymd(fecha),
+         TIME = as.numeric(TIME)) %>%
+  group_by(LOCATION) %>%
+  # mutate(ppi_97 = generar_indice(Value, 'fecha', "1997-01-01"))
+  mutate(ppi_99 = generar_indice(serie=Value, fecha=TIME, fecha_base=1999))
+
+
+# PPI 
+## PPI ARG
+ppi_arg <- read_csv('./data/arg/ppi_arg.csv') %>% 
+  mutate(ppi_99 = generar_indice(ppi_04, year, 1999))
+
+# Productivity (PT)
+data_prod <- data %>%
+  select(c(sector, country, Continent , year,value_added, employment, PT)) %>%
+  filter(PT > 0 &  employment > 0 ) %>%
+  arrange(desc(PT)) #    arrange(PT)
+
+## Brecha de productividad
+data_prod <-  data_prod %>%
+  left_join(isocodes, by = 'country') %>% 
+  left_join(ppi %>% 
+              select(country = 'LOCATION', 
+                     year = 'TIME',
+                     ppi_99),
+            by = c('CODE'='country', 'year'='year')
+  )
+
+# Print the countries with NA in CODE
+na_codes <- data_prod %>% filter(is.na(CODE))
+print(unique(na_codes$country))
+
+df_manuf <- data_prod %>% 
+  filter(sector == "Total Manufacturing"  )
+
+df_manuf_arg <- df_manuf %>% 
+  arrange(year)%>% 
+  filter(CODE == 'ARG') %>% 
+  left_join(tcp_df %>% 
+              select(year, TCC,  TCP_1),
+            by= 'year')  %>% 
+  select(-ppi_99) %>% 
+  left_join(ppi_arg %>%
+              select(year, ppi_99),
+            by= 'year') %>% 
+  mutate(ipt_arg_99 = (PT*TCC) / ppi_99 ,
+         ipt_arg_99_index =  generar_indice(ipt_arg_99, year, 1999)) %>% 
+  select(year, country, PT_arg=PT,  ppi_arg_99=ppi_99, ipt_arg_99, ipt_arg_99_index) 
+
+
+df_manuf_eu <- df_manuf %>% 
+  filter(Continent == 'Europe') %>% #, country!= 'Austria') %>% 
+  filter(!is.na(ppi_99))  %>% 
+  mutate(ipt_bench_99 = PT/ppi_99) %>%
+  group_by(country) %>% 
+  arrange(year)%>% 
+  mutate(ipt_bench_99_index =  generar_indice(ipt_bench_99, year, 1999)) %>%
+  ungroup() %>% 
+  select(year, country, PT_bench=PT, ppi_bench_99=ppi_99, ipt_bench_99, ipt_bench_99_index)
+
+df_manuf_benchmark <- df_manuf %>% 
+  # filter(Continent != '')
+  filter(Continent == 'Europe' , year == 1999) %>% 
+  select(year, country, PT_bench_base = PT) %>% 
+  left_join( df_manuf_arg %>% 
+               filter(year == 1999) %>% 
+                    left_join(tcp_df %>% 
+                                select(year, TCP_1),
+                              by= 'year') %>% 
+               select(year, PT_arg_base = PT_arg, TCP_1),
+             by = 'year' ) %>% 
+  mutate(brecha_anio_base = (PT_arg_base/TCP_1)/PT_bench_base )
+
+df_manuf_brecha <- df_manuf_arg %>% 
+  select(-country) %>% 
+  left_join(df_manuf_eu,
+            by='year') %>% 
+  left_join(df_manuf_benchmark %>% 
+              select(year, country, brecha_anio_base ),
+            by=c('year', 'country'))
+
+#SAVE
+write.table(df_manuf_brecha,
+            './results/bea/majority_owned_nonbank/brecha_productividad_manufacturing.csv',
+          row.names = F
+         # , dec = ','
+         #  ,sep = ';'
+          )
+
+

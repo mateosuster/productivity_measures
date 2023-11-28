@@ -184,3 +184,8 @@ data %>%
         strip.text = element_text(size=5))+
   scale_fill_manual(values=wes_palette(n=3, name="Royal2"))
 ggsave("./results/bea/majority_owned_nonbank/tg/tg_eu_sa_all_avg_1.png")
+
+# argentina
+
+
+#manufacturing

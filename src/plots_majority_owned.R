@@ -62,6 +62,16 @@ melted_data %>%
   labs(title = "Rotación. Distintas estimaciones")
 ggsave("./results/bea/majority_owned_nonbank/rotacion_1_y_2.png", width = 10, height = 6) # Adjust width and height
 
+#rotacion manufacturing
+melted_data %>% 
+  filter(variable %in% c('r_1') & sector == "Total Manufacturing") %>% 
+  ggplot(aes(x = year, y = value, color = country)) + 
+  geom_point(size = 0.3) +
+  labs(title = "Rotación Manufacturing")+
+  theme(legend.position = 'none')
+ggsave("./results/bea/majority_owned_nonbank/rotacion_manufacturings.png", width = 10, height = 6) # Adjust width and height
+
+
 kcca_plot  <- melted_data %>% 
   filter( variable %in% c("Kcca") ) %>% 
   # filter(! variable %in% c("asset", "CI", 'r_3') ) %>% 
