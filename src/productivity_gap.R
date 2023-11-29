@@ -1,34 +1,21 @@
 library(tidyverse)
 library(readxl)
 library(lubridate)
+source("./src/functions.R")
 
-# setwd("C:/Archivos/datos/bea/codigos/majority_owned/")
-# setwd("C:/Documents/data/bea/codigos/majority_owned/")
-
-generar_indice <- function(serie,fecha, fecha_base){
-  
-  valor_base <- serie[which(fecha==fecha_base)]
-  
-  # Check if valor_base is empty
-  if (length(valor_base) == 0) {
-    warning("No matching date found for fecha_base. Returning NA.")
-    return(NA)
-  }
-  
-  return (serie/valor_base)
-}
-
+#directory
 results_path = './results/bea/majority_owned_nonbank/'
 
-#params
+#plots params
 title_size=40
 text_size= 30
 axis_size= 5
 strip_size= 6
 
-
+# load data
 data <- read.csv("./results/bea/majority_owned_nonbank/data_majority_owned_nonbank_procesado.csv") 
 tcp_df <- read.csv('./results/indice_tcp.csv')
+
 # Create a vector of unique sectors
 sectors <- unique(data$sector)
 
