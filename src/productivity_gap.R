@@ -43,11 +43,9 @@ ppi_arg <- read_csv('./data/arg/ppi_arg.csv') %>%
 # Productivity (PT)
 data_prod <- data %>%
   select(c(sector, country, Continent , year,value_added, employment, PT)) %>%
-  filter(PT > 0 &  employment > 0 ) %>%
-  arrange(desc(PT)) #    arrange(PT)
-
-## Brecha de productividad
-data_prod <-  data_prod %>%
+  # filter(PT >= 0 &  employment > 0 ) %>%
+  filter(  employment > 0 ) %>%
+  arrange(desc(PT)) %>%
   left_join(isocodes, by = 'country') %>% 
   left_join(ppi %>% 
               select(country = 'LOCATION', 
@@ -56,12 +54,24 @@ data_prod <-  data_prod %>%
             by = c('CODE'='country', 'year'='year')
   )
 
+data_prod <- data_prod %>%
+  bind_rows(
+    data_prod %>%
+      filter(sector == "Total Manufacturing") %>%
+      mutate(
+        sector = "Manufacturing without Transportation Equipment",
+        employment = employment - data_prod$employment[data_prod$sector == "Transportation Equipment"],
+        value_added = value_added - data_prod$value_added[data_prod$sector == "Transportation Equipment"],
+        PT = value_added/employment
+      )
+  )
+
 # Print the countries with NA in CODE
 na_codes <- data_prod %>% filter(is.na(CODE))
 print(unique(na_codes$country))
 
-df_manuf <- data_prod %>% 
-  filter(sector == "Total Manufacturing"  )
+df_manuf <- data_prod #%>% 
+  # filter(sector == "Total Manufacturing"  )
 
 df_manuf_arg <- df_manuf %>% 
   arrange(year)%>% 
@@ -75,46 +85,45 @@ df_manuf_arg <- df_manuf %>%
             by= 'year') %>% 
   mutate(ipt_arg_99 = (PT*TCC) / ppi_99 ,
          ipt_arg_99_index =  generar_indice(ipt_arg_99, year, 1999)) %>% 
-  select(year, country, PT_arg=PT,  ppi_arg_99=ppi_99, ipt_arg_99, ipt_arg_99_index) 
+  select(year, country, sector, PT_arg=PT,  ppi_arg_99=ppi_99, ipt_arg_99, ipt_arg_99_index) 
 
 
 df_manuf_eu <- df_manuf %>% 
   filter(Continent == 'Europe') %>% #, country!= 'Austria') %>% 
   filter(!is.na(ppi_99))  %>% 
   mutate(ipt_bench_99 = PT/ppi_99) %>%
-  group_by(country) %>% 
+  group_by(country, sector) %>% 
   arrange(year)%>% 
   mutate(ipt_bench_99_index =  generar_indice(ipt_bench_99, year, 1999)) %>%
   ungroup() %>% 
-  select(year, country, PT_bench=PT, ppi_bench_99=ppi_99, ipt_bench_99, ipt_bench_99_index)
+  select(year, country,sector, PT_bench=PT, ppi_bench_99=ppi_99, ipt_bench_99, ipt_bench_99_index)
 
 df_manuf_benchmark <- df_manuf %>% 
   # filter(Continent != '')
   filter(Continent == 'Europe' , year == 1999) %>% 
-  select(year, country, PT_bench_base = PT) %>% 
+  select(year, country, sector, PT_bench_base = PT) %>% 
   left_join( df_manuf_arg %>% 
                filter(year == 1999) %>% 
                     left_join(tcp_df %>% 
                                 select(year, TCP_1),
                               by= 'year') %>% 
-               select(year, PT_arg_base = PT_arg, TCP_1),
-             by = 'year' ) %>% 
+               select(year,sector, PT_arg_base = PT_arg, TCP_1),
+             by = c('year', 'sector') ) %>% 
   mutate(brecha_anio_base = (PT_arg_base/TCP_1)/PT_bench_base )
 
 df_manuf_brecha <- df_manuf_arg %>% 
   select(-country) %>% 
-  left_join(df_manuf_eu,
-            by='year') %>% 
+  right_join(df_manuf_eu,
+            by=c('year', 'sector')) %>% 
   left_join(df_manuf_benchmark %>% 
-              select(year, country, brecha_anio_base ),
-            by=c('year', 'country'))
+              select(year, country, sector, brecha_anio_base ),
+            by=c('year', 'country',  'sector'))
 
 #SAVE
 write.table(df_manuf_brecha,
-            './results/bea/majority_owned_nonbank/brecha_productividad_manufacturing.csv',
+            './results/bea/majority_owned_nonbank/brecha_productividad_all_sectors.csv',
           row.names = F
          # , dec = ','
          #  ,sep = ';'
           )
-
 
