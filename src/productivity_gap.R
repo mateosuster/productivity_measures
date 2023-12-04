@@ -32,7 +32,8 @@ ppi <- read.csv("./data/ocde/DP_LIVE_27112023180609408.csv") %>%
          TIME = as.numeric(TIME)) %>%
   group_by(LOCATION) %>%
   # mutate(ppi_97 = generar_indice(Value, 'fecha', "1997-01-01"))
-  mutate(ppi_99 = generar_indice(serie=Value, fecha=TIME, fecha_base=1999))
+  mutate(ppi_99 = generar_indice(serie=Value, fecha=TIME, fecha_base=1999)) %>% 
+  ungroup()
 
 
 # PPI 
@@ -69,8 +70,8 @@ data_prod <- data_prod_0 %>%
 na_codes <- data_prod %>% filter(is.na(CODE))
 print(unique(na_codes$country))
 
-df_manuf <- data_prod #%>% 
-  # filter(sector == "Total Manufacturing"  )
+df_manuf <- data_prod %>% 
+  filter(sector == "Total Manufacturing"  )
 
 df_manuf_arg <- df_manuf %>% 
   arrange(year)%>% 
@@ -82,9 +83,11 @@ df_manuf_arg <- df_manuf %>%
   left_join(ppi_arg %>%
               select(year, ppi_99),
             by= 'year') %>% 
+  group_by(sector) %>% 
   mutate(ipt_arg_99 = (PT*TCC) / ppi_99 ,
          ipt_arg_99_index =  generar_indice(ipt_arg_99, year, 1999)) %>% 
-  select(year, country, sector, PT_arg=PT,  ppi_arg_99=ppi_99, ipt_arg_99, ipt_arg_99_index) 
+  select(year, country, sector, PT_arg=PT,  ppi_arg_99=ppi_99, ipt_arg_99, ipt_arg_99_index) %>% 
+  ungroup()
 
 
 df_manuf_eu <- df_manuf %>% 
@@ -104,11 +107,11 @@ df_manuf_benchmark <- df_manuf %>%
   left_join( df_manuf_arg %>% 
                filter(year == 1999) %>% 
                     left_join(tcp_df %>% 
-                                select(year, TCP_1),
+                                select(year, TCC, TCP_1),
                               by= 'year') %>% 
-               select(year,sector, PT_arg_base = PT_arg, TCP_1),
+               select(year,sector, PT_arg_base = PT_arg, TCC, TCP_1),
              by = c('year', 'sector') ) %>% 
-  mutate(brecha_anio_base = (PT_arg_base/TCP_1)/PT_bench_base )
+  mutate(brecha_anio_base = (PT_arg_base*TCC/TCP_1)/PT_bench_base )
 
 df_manuf_brecha <- df_manuf_arg %>% 
   select(-country) %>% 

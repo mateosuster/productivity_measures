@@ -9,7 +9,8 @@ library(ggplot2)
 
 
 df<- read.csv('./results/bea/majority_owned_nonbank/productivity_gap_all_sectors.csv') %>% 
-  select(year,country, sector, brecha_calculada   ) %>% 
+  select(year,country, sector, brecha_calculada  , 
+         ipt_arg_99_index, ipt_bench_99_index) %>% 
   filter (sector %in% c("Total Manufacturing"  
                         # ,"Transportation Equipment" 
                         # ,"Manufacturing without Transportation Equipment"
@@ -28,12 +29,12 @@ df %>%
   geom_line() +
   facet_wrap(~sector)+
   scale_color_manual(values = colores_personalizados) +
-  # scale_y_continuous(labels = percent_format()
-                     # , breaks = seq(0, 3, by = 0.1)
-                     # ) +  # Configura el eje y como porcentaje
-
+  scale_y_continuous(labels = percent_format()
+  , breaks = seq(0, 3, by = 0.1)
+  ) +  # Configura el eje y como porcentaje
   theme_minimal()
-ggsave('./results/bea/majority_owned_nonbank/productivity_gap_eu_manuf_trans_y_diff.png')
+
+ggsave('./results/bea/majority_owned_nonbank/productivity_gap_eu_manuf_2.png')
 summary(df)
 
 
