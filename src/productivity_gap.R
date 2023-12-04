@@ -14,10 +14,10 @@ strip_size= 6
 
 # load data
 data <- read.csv("./results/bea/majority_owned_nonbank/data_majority_owned_nonbank_procesado.csv") 
-tcp_df <- read.csv('./results/indice_tcp.csv')
-
 # Create a vector of unique sectors
 sectors <- unique(data$sector)
+
+tcp_df <- read.csv('./results/indice_tcp.csv')
 
 # ISO Codes
 isocodes<- read_excel("./data/ocde/34107835.xls")  %>%
@@ -41,11 +41,10 @@ ppi_arg <- read_csv('./data/arg/ppi_arg.csv') %>%
   mutate(ppi_99 = generar_indice(ppi_04, year, 1999))
 
 # Productivity (PT)
-data_prod <- data %>%
+data_prod_0 <- data %>%
   select(c(sector, country, Continent , year,value_added, employment, PT)) %>%
   # filter(PT >= 0 &  employment > 0 ) %>%
   filter(  employment > 0 ) %>%
-  arrange(desc(PT)) %>%
   left_join(isocodes, by = 'country') %>% 
   left_join(ppi %>% 
               select(country = 'LOCATION', 
@@ -54,14 +53,14 @@ data_prod <- data %>%
             by = c('CODE'='country', 'year'='year')
   )
 
-data_prod <- data_prod %>%
+data_prod <- data_prod_0 %>%
   bind_rows(
-    data_prod %>%
-      filter(sector == "Total Manufacturing") %>%
+    data_prod_0 %>%
+      filter(sector == "Total Manufacturing") %>% #, country == "Argentina"
       mutate(
         sector = "Manufacturing without Transportation Equipment",
-        employment = employment - data_prod$employment[data_prod$sector == "Transportation Equipment"],
-        value_added = value_added - data_prod$value_added[data_prod$sector == "Transportation Equipment"],
+        employment = employment - data_prod_0$employment[data_prod_0$sector == "Transportation Equipment"],
+        value_added = value_added - data_prod_0$value_added[data_prod_0$sector == "Transportation Equipment"],
         PT = value_added/employment
       )
   )
@@ -117,7 +116,7 @@ df_manuf_brecha <- df_manuf_arg %>%
             by=c('year', 'sector')) %>% 
   left_join(df_manuf_benchmark %>% 
               select(year, country, sector, brecha_anio_base ),
-            by=c('year', 'country',  'sector'))
+            by=c('year', 'country', 'sector'))
 
 #SAVE
 write.table(df_manuf_brecha,
