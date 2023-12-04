@@ -54,24 +54,29 @@ data_prod_0 <- data %>%
             by = c('CODE'='country', 'year'='year')
   )
 
+
+
 data_prod <- data_prod_0 %>%
   bind_rows(
     data_prod_0 %>%
       filter(sector == "Total Manufacturing") %>% #, country == "Argentina"
+      # group_by(country, Continent, CODE) %>%
+      # group_by(year) %>%
       mutate(
         sector = "Manufacturing without Transportation Equipment",
         employment = employment - data_prod_0$employment[data_prod_0$sector == "Transportation Equipment"],
         value_added = value_added - data_prod_0$value_added[data_prod_0$sector == "Transportation Equipment"],
         PT = value_added/employment
-      )
+      ) #%>% 
+      # ungroup()
   )
 
 # Print the countries with NA in CODE
 na_codes <- data_prod %>% filter(is.na(CODE))
 print(unique(na_codes$country))
 
-df_manuf <- data_prod %>% 
-  filter(sector == "Total Manufacturing"  )
+df_manuf <- data_prod #%>% 
+  # filter(sector == "Total Manufacturing"  )
 
 df_manuf_arg <- df_manuf %>% 
   arrange(year)%>% 
