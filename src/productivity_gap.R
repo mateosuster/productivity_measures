@@ -56,20 +56,29 @@ data_prod_0 <- data %>%
 
 
 
+
+
 data_prod <- data_prod_0 %>%
-  bind_rows(
-    data_prod_0 %>%
-      filter(sector == "Total Manufacturing") %>% #, country == "Argentina"
-      # group_by(country, Continent, CODE) %>%
-      # group_by(year) %>%
-      mutate(
-        sector = "Manufacturing without Transportation Equipment",
-        employment = employment - data_prod_0$employment[data_prod_0$sector == "Transportation Equipment"],
-        value_added = value_added - data_prod_0$value_added[data_prod_0$sector == "Transportation Equipment"],
-        PT = value_added/employment
-      ) #%>% 
-      # ungroup()
-  )
+  select(-'PT') %>% 
+  pivot_longer(cols = c(value_added, employment),
+               names_to = "variable", values_to = "value") %>% 
+  pivot_wider(names_from = sector, 
+              # values_from = value,
+              # id_cols = c(  "country",  "Continent",  "year", "CODE", "ppi_99", "value"  )
+              ) %>% 
+  mutate(
+    `Manufacturing without Transportation Equipment` = 
+      `Total Manufacturing` - `Transportation Equipment`,
+    `Manufacturing without Food` = 
+      `Total Manufacturing` - `Food`
+    ) %>% 
+  pivot_longer(cols = -c(country, Continent, year, CODE, ppi_99, variable),
+               names_to = "sector",
+               values_to = "value") %>% 
+  pivot_wider(names_from = variable) %>% 
+  mutate(PT = value_added/employment)
+  
+ 
 
 # Print the countries with NA in CODE
 na_codes <- data_prod %>% filter(is.na(CODE))

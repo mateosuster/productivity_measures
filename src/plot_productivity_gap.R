@@ -13,7 +13,8 @@ df<- read.csv('./results/bea/majority_owned_nonbank/productivity_gap_all_sectors
          ipt_arg_99_index, ipt_bench_99_index) %>% 
   filter (sector %in% c("Total Manufacturing"  
                         ,"Transportation Equipment"
-                        ,"Manufacturing without Transportation Equipment"
+                        ,"Manufacturing without Transportation Equipment",
+                        "Manufacturing without Food"
                         ) )
 
 colores_personalizados <- c("#1f78b4", "#33a02c", "#e31a1c", "#ff7f00", "#6a3d9a", "#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#ffff99", "#636363", "#b15928")
