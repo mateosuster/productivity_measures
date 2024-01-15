@@ -3,15 +3,31 @@
 ## BEA
 Activities of U.S. Multinational Enterprises (MNEs). Data on activities of multinational enterprises provide a wide variety of indicators of the financial structure and operations of the firms involved. All Majority-owned Foreign Affiliates and All U.S. Parent Companies. Data By Industry of Affiliate and Country (NAICS) (Millions of Dollars)
 
-
-1) Ver si las caracteristicas de la NDIT se observan en la base
-- Paises donde EEUU lleva la chatarra: baja productividad y alta TG
-- Paises donde EEUU se beneficia de los bajos salarios
-- Paises donde EEUU se radica para exportar
-- Paises donde prima la apropiación de renta de la tierra
-
-2) Donde EEUU tiene mas stock de capital invertido
-
-3) Cruzar la data con la base de corporaciones (ver remision de utilidades, paper de Kliman)
+### Variables
+1 "sector"
+2 "country"                         
+3 "year"                             
+4 "asset"                           
+5 "compensation_employees"           
+6 "employment"                      
+7 "expenditures"                     
+8 "net_income"                      
+9 "net_property_plant_and_equipment" 
+10 "total_sales"                     
+11 "value_added"                      
+12 "CI"                              
+13 "Kcca"                             
+14 "r_1"                             
+15 "Kva"                              
+16 "TG"                              
+17 "TGstock"                          
+18 "TGasset"                         
+19 "PT"                               
+20 "Rem"                             
+21 "COtec"                            
+22 "COv"                             
+23 "TP"                               
+24 "TPr"                             
+25 "Continent"         
 
 ## ENGE
