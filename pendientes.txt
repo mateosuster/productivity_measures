@@ -1,0 +1,26 @@
+
+# Pendientes
+## BEA
+1) Ver si las caracteristicas de la NDIT se observan en la base
+- Paises donde EEUU lleva la chatarra: baja productividad y alta TG
+- Paises donde EEUU se beneficia de los bajos salarios
+- Paises donde EEUU se radica para exportar
+- Paises donde prima la apropiación de renta de la tierra
+
+2) Donde EEUU tiene mas stock de capital invertido
+
+3) Cruzar la data con la base de corporaciones (ver remision de utilidades, paper de Kliman)
+
+
+revisar rotacion BEA
+	que residuo inventario activos no sea muy chico
+	compararlo en relacion al activo 
+	alternativaa: promediar rotacion para toda la rama, para evitar la sensibilidad
+	
+brecha de productividad empresas eeuu
+	IPI en el excel de manual
+	buscar IPI de europa
+	
+
+## PWT 
+	terminar de cargar, emprolijar, visualizacion
