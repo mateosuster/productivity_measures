@@ -1,0 +1,96 @@
+---
+title: "EDA PWT"
+output: html_notebook
+---
+
+```{r}
+library(pwt10)
+library(tidyverse)
+data <- pwt10.01
+glimpse(data)
+```
+```{r}
+library(tidyverse)
+
+get_index <- function(df, name_var, production, work, base_year, index_bool = TRUE, countries = NULL, method = 1, plot_bool = FALSE, notes = NULL) {
+  
+  if (work == 'emp') {
+    df[[name_var]] <- df[[production]] / df[[work]]
+  } else if (work == 'avh') {
+    df[[name_var]] <- df[[production]] / (df[[work]] * df[['emp']])
+  }
+  
+  if (index_bool) {
+    name_index <- paste0(name_var, '_index')
+    base_year <- base_year
+    
+    # calculate the base productivity for each country
+    if (method == 1) {
+      base_prod <- df %>% 
+        filter(year == base_year) %>%
+        group_by(country) %>%
+        summarise(prod_base = first(!!sym(name_var)))
+      
+      df <- df %>%
+        left_join(base_prod, by = 'country') %>%
+        mutate(!!name_index := (!!sym(name_var) / prod_base) * 100) %>%
+        select(-prod_base)
+    } else {
+      base_prod <- df %>% 
+        filter(year == base_year) %>%
+        select(country, prod_base = !!sym(name_var))
+      
+      df <- df %>%
+        left_join(base_prod, by = 'country') %>%
+        mutate(!!name_index := !!sym(name_var) / prod_base * 100) %>%
+        select(-prod_base)
+    }
+  }
+  
+  if (plot_bool) {
+    sel_countries <- if (!is.null(countries)) countries else unique(df$country)
+    
+    if (method == 1) {
+      pivot <- df %>%
+        filter(country %in% sel_countries) %>%
+        select(year, country, !!sym(name_index)) %>%
+        spread(country, !!sym(name_index))
+    } else {
+      pivot <- df %>%
+        filter(country %in% sel_countries) %>%
+        select(year, country, !!sym(name_index))
+    }
+    
+    # create a line plot of the index values for each country
+    plot <- pivot %>%
+      ggplot(aes(x = year)) +
+      geom_line(aes(y = !!sym(name_index), color = country)) +
+      labs(title = paste0('Productivity Index (', production, '/', work, '). ', base_year, '=100'),
+           x = 'Year',
+           y = 'Index') +
+      theme_minimal() +
+      theme(legend.position = 'top') +
+      annotate('text', x = 0.1, y = -0.20, label = notes, hjust = 0, vjust = 0)
+    print(plot)
+    # save the plot
+    ggsave(paste0(gsub('[/\\.]', '', paste0('Productivity Index (', production, '/', work, '). ', base_year, '=100')), '.png'),
+           plot = plot, width = 10, height = 6, dpi = 300)
+  }
+  
+  return(NULL)
+}
+
+# Example usage
+sel_countries <- c('Argentina', 'United States', 'Germany', 'Brazil', 'Republic of Korea')
+base_year <- 2015
+name_var <- 'productivity_emp'
+production <- 'rgdpna'
+work <- 'emp'
+notes <- NULL
+
+get_index(data, name_var = name_var, production = production, work = work, base_year = base_year,
+          countries = sel_countries, method = 2,
+          plot_bool = TRUE, notes = notes)
+
+```
+

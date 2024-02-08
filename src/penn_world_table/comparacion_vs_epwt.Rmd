@@ -1,0 +1,144 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+# Source and documentation
+
+* [Deepankar Basu academic profile](https://people.umass.edu/dbasu/data.html)
+* [EPWT Documentation](https://people.umass.edu/dbasu/Data/Documentation%20EPWT%207.0.pdf)
+
+
+Selected variables
+* `rnat2017`: Net profit rate measured at constant 2017 national prices.
+* `rnatcur`: Net profit rate measured at current national prices.
+  * It is computed as: [(1 – LabShare)* rhocur] – delta]. 
+  * I supposed rhocur is  rhonatcur _ It is the productivity of capital (output-capital ratio) measured at current national prices. It is the ratio between the real GDP at current national prices and the capital stock at current national prices.
+  * It is their preferred measure of profit rate
+
+* `rppp2017`: Net profit rate measured at 2017 PPPs.
+
+
+# Data
+
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(reshape2)
+library(ggplot2)
+```
+
+
+```{r}
+# selected countries and vars
+paises_sel <- c("ECU", "URY","CHL"
+              # ,"ARG","BRA",,"VEN", "BOL",
+              #   "PER","COL","PRY","MEX"
+              )
+
+var_sel_pict <- c("anio", 'iso3', 'fuente',
+                  "pib", "rem", "pv" ,
+                  "stock" ,  "ckf",
+                  'tg'
+                  # , "kta" , "kta_t_1",   "kcca"
+                    
+                  )
+
+# epwt data
+epwt <- read_excel( '../../data/pwt/EPWT 7.0 FV.xlsx',
+                   sheet = 'EPWT7.0') %>% 
+  filter(Countrycode %in% paises_sel ) %>% 
+  select('anio' = Year, 'iso3'= Countrycode, # 'pais' = Country,
+          "LabShare",
+          'pib'="XGDPnatcur",
+          "rhonatcur" ,
+          "ckf"='delta', 
+          'stock'= "Knatcur", "knat2017",
+          'rnat2017', 'tg' = 'rnatcur', 'rppp2017') %>% 
+  mutate(rem=LabShare*pib,
+         pv = ((1 - LabShare) * rhonatcur) * stock ,
+         fuente= 'EPWT',
+         ckf = ckf * stock
+         ) %>% 
+  select(var_sel_pict) %>% 
+    melt(id.vars=c('anio', 'iso3', 'fuente'))
+
+  
+# epwt_vars <- read_excel('../../data/pwt/EPWT 7.0 FV.xlsx',
+#                    sheet = 1)
+
+# pict data
+df_uy <- read_excel('../../data/pict/base_total_economía_uruguay output.xlsx',
+                    sheet = 2) %>% 
+  mutate(iso3 = 'URY',
+         fuente='Propia') %>% 
+  select(var_sel_pict) %>% 
+  melt(id.vars=c('anio', 'iso3', 'fuente'))
+
+
+df_ec <- read_excel('../../data/pict/base_total_economía_ecuador.xlsx',
+                    sheet = 2) %>% 
+  mutate(iso3 = 'ECU',
+         fuente='Propia') %>% 
+  select(var_sel_pict) %>% 
+  melt(id.vars=c('anio', 'iso3', 'fuente'))
+
+df_cl <- read_excel('../../data/pict/base_total_economía_chile.xlsx',
+                    sheet = 2) %>% 
+  mutate(iso3 = 'CHL',
+         fuente='Propia') %>% 
+  select(var_sel_pict) %>% 
+  melt(id.vars=c('anio', 'iso3', 'fuente'))
+
+# bind data
+data <- bind_rows(df_ec, df_uy) %>% 
+  bind_rows(df_cl) %>% 
+  bind_rows(epwt)
+head(data)
+```
+
+```{r}
+unique(data$variable)
+```
+
+
+#Visualization
+```{r}
+
+# Extract unique variables from the 'variable' column
+variables <- unique(data$variable)
+
+# Loop through each variable and create a line plot
+for (var in variables) {
+  # Subset data for the current variable
+  subset_data <- data %>%
+     filter(variable == var) #%>% 
+    # filter(fuente=='Propia')
+    # filter(fuente=='EPWT')
+  
+  # Create a ggplot object
+  p <- ggplot(subset_data, aes(x = anio, y = value, color = fuente)) +
+    geom_line() +
+    labs(title = var, x = "Year", y = "Value") +
+    facet_wrap(~ iso3, scales='free',
+               ncol=1) + # Facet by country
+    scale_color_discrete(name = "Source") # Optional: change legend title
+  
+  # Save
+  ggsave(paste0('../../results/pict/comparacion_epwt/', var, '.png' ),
+        plot = p
+         )
+  
+  # Print the plot
+  print(p)
+}
+
+```
+
+
+
+
+
+
