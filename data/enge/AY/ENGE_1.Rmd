@@ -1,0 +1,509 @@
+---
+title: "Procesamiento de la Encuesta Nacional a Grandes Empresas"
+author: "Alejandro Yacovone"
+date: "2024-04-01"
+output:
+  html_notebook:
+    toc: true
+---
+```{r setup, include=FALSE, message=FALSE, warning = FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+```{r librerías , message=FALSE, warning=FALSE, include= TRUE, echo=TRUE}
+# No usar notación científica. 
+options(scipen = 999) 
+
+# LOCALE EN ESPAÑOL (símbolos, fechas):
+# En Mac suele funcionar la opción que marca Segasi: 
+Sys.setlocale("LC_ALL", "es_ES.UTF-8")
+
+# En Windows/Linux suele funcionar esta función: 
+Sys.setlocale("LC_ALL","Spanish")
+
+#Traigo conjunto de librerías que suelo usar al espacio de trabajo
+library("tidyverse")
+library("openxlsx")
+library("ggplot2")
+library("ggthemes")
+library("GGally")
+library("scales")
+library("dplyr")
+library("kableExtra")
+library('ggrepel')
+library('ggalt')
+library('GGally')
+library('ggridges')
+library('fs')
+library('purrr')
+library('rmarkdown')
+library('esquisse')
+library('treemapify')
+library('viridis')
+library("tinytex")
+
+```
+
+# Introducción
+
+<div class=text-justify> 
+En la [Encuesta Nacional a Grandes Empresas (ENGE)](https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-4-50), elaborada por el INDEC, se relevan datos de vital importancia en la dinámica de las 500 empresas más grandes del país  de los sectores no financieros (excluido el agropecuario). Los resultados constituyen un sistema de información permanente que permite comprender el comportamiento de la cúpula empresaria argentina, y son un insumo básico para la determinación de los agregados macroeconómicos: valor de producción, valor agregado, inversión, ocupación, activo y pasivo y transacciones con el exterior.
+
+El periodo total abarcado por la ENGE va desde 1993 hasta 2022 y se espera la futura publicación correspondiente al 2023 para completar la serie.
+<div/>
+
+# Preparación de la base
+
+## Conformación de archivo propio
+
+<div class=text-justify> 
+Para estar en condiciones de realizar un procesamiento integral de la ENGE fue necesario llevar a cabo una serie de pasos previos.
+Ante todo, se realizó un pasaje inicial de cuadros seleccionados a un archivo **.xlsx**. Estos cuadros corresponden a variables macro-económicas y financieras presentadas por sectores y origen del capital. Sin embargo, el formato de publicación no fue siempre el mismo y tanto la desagregación sectorial como las variables incluidas fueron variando a lo largo del tiempo. 
+
+Primero, para el  periodo que va desde 1993 hasta 2004 existe un informe completo que mantiene un formato homogéneo con el mismo conjunto de variables y desagregación sectorial. Sin embargo, el informe se encuentra en formato **.pdf**. Con lo cual, se realizó un pasaje de los cuadros seleccionados de forma manual con la complementariedad de herramientas muy limitadas de conversión a .xlsx y copiado por medio de la función extractor de texto de la aplicación [Power Toys](https://learn.microsoft.com/es-es/windows/powertoys/).
+
+Segundo, a partir de 2004 comienza un periodo de publicaciones combinadas entre informes en .pdf (con desagregación sectorial) y cuadros en formato .xlsx (para los totales) que se mantendrá hasta 2011. Por un lado, los informes se publican con menor sistematicidad que en el periodo anterior, esto es, con una grado menor de orden y jerarquización de la información y menor riqueza de los datos. A pesar de lo anterior, se sostiene la misma desagregación sectorial. Por lo tanto, el pasaje de los cuadros fue, por un lado, el mismo que en el periodo 1993-2004, pero, por otro lado, se simplificó la utilización de los totales por el formato .xlsx. Algunos datos para 2004 se superponen con la publicación anterior, pero se decidió mantener a ambos para luego evaluar cual seleccionar para ese año.
+
+Por último, en 2012 comienza un periodo de mayor sistematización en el relevamiento que se reflejará en los informes publicados a partir de 2015-2016 que contienen los datos desde 2012. Desde entonces, los datos de los cuadros de los informes en .pdf se encuentran duplicados cada vez más en los cuadros de publicados en .xlsx. A partir de 2017, todos los cuadros publicados en los informes están también en .xlsx, facilitando con ellos la conformación de una tabla. Cabe destacar que a partir de 2012, aumenta el volumen de datos presentados y la desagregación sectorial, dando por resultado una mayor riqueza para el procesamiento pero, a la vez, complejizando la compatibilidad con las publicaciones de periodos anteriores. El pasaje a un archivo propio de este periodo de 10 años está subdividido en otros dos periodos: a) 2012-2016 en el que se utilizan de forma combinada los cuadros de los informes con los de los .xlsx y b) 2017-2022 en el que se toman exclusivamente los cuadros de los .xlsx.
+
+Los cuadros extraídos fueron volcados en un archivo propio .xlsx separado por hojas que corresponden a los distintos periodos: i) 1993-2004, ii) 2004-2011, iii) 2012-2016, iv) 2017-2022.
+
+<div/>
+
+```{r read data, message=FALSE, warning=FALSE, echo = TRUE}
+#Levanto las hojas del excel por separado correspondiente a las distintas presentaciones de la ENGE en cada periodo
+
+ENGE_1993a2004 <- openxlsx::read.xlsx(
+  xlsxFile = "Fuentes/0. resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  sheet = 1)
+
+ENGE_2004a2011 <- openxlsx::read.xlsx(
+  xlsxFile = "Fuentes/0. resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  sheet = 2)
+
+ENGE_2012a2016 <- openxlsx::read.xlsx(
+  xlsxFile = "Fuentes/0. resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  sheet = 3)
+
+ENGE_2017a2022 <- openxlsx::read.xlsx(
+  xlsxFile = "Fuentes/0. resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  sheet = 4)
+
+```
+
+
+## Unificación
+
+<div class=text-justify> 
+A la luz de lo expuesto anteriormente, se identifica el problema de unificar los distintos dataframes conformados por los periodos con formatos de publicación correspondientes.
+<div/> 
+
+### Paso 1: merge()
+
+<div class=text-justify> 
+Frente a dicho problema se recurrió primero a unificar, por medio de la función [**merge()**](https://r-coder.com/funcion-merge-r/#Full_outer_join), los dataframes con el mismo nivel de desagregación sectorial lo que permite una compatibilidad inmediata y completa.
+
+Por un lado, se unificaron los periodos i) y ii) dando lugar a un dataframe que cubre los años que van desde 1993 hasta 2011. Por otro lado, se unificaron los periodos iii) y iv), y con ello se logró abarcar desde 2012 hasta 2022.
+<div/> 
+
+```{r merge, message=FALSE, warning=FALSE, include=FALSE, echo = TRUE}
+#Unión con merge según modo de presentación compatible
+
+## Del 93 al 2011 el conjunto de sectores es un poco más acotado
+ENGE_1993a2011 <- merge(x = ENGE_1993a2004,
+                        y = ENGE_2004a2011, 
+                        all = T)
+
+## Del 2012 en adelante se apmlía la desagregación de sectores
+ENGE_2012a2022 <- merge(x = ENGE_2012a2016,
+                        y = ENGE_2017a2022,
+                        all = T)
+
+#Quito las que ya no uso
+rm(ENGE_1993a2004,ENGE_2004a2011,ENGE_2012a2016,ENGE_2017a2022)
+
+```
+
+<div class=text-justify> 
+A continuación se presenta el **Cuadro 1** en el que se resume el criterio de unificación por desagregación sectorial:
+<div/> 
+
+```{r sectores, message=FALSE, warning=FALSE, echo = TRUE}
+#Levanto la tabla con la desagregación sectorial
+sectores <- openxlsx::read.xlsx(
+  xlsxFile = "Fuentes/0. resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  sheet = 7)
+
+sectores %>% kbl(caption = "Cuadro 1. Desagregación sectorial por periodo") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+<div class=text-justify> 
+Los **...** significan desagregaciones inexistentes en 1993-2011 que luego pasaron a ser consideradas en 2012-2022  dentro de los sectores antecedidos.
+
+Es así que se puede ver como dentro de lo que antes aparecía como **manufactura_resto**, a partir de 2012 se desagrega en:
+
+- **manufactura_textiles**:	Textiles y cueros de la industria manufacturera. 
+- **manufactura_minerales**: Minerales no metálicos, metales y productos de metal de la industria manufacturera. 
+- **manufactura_nocat**:	Otras actividades de la industria manufacturera no categorizadas.
+
+Asimismo, a partir 2012 lo que antes aparecía sólo como **otras_resto** se desagrega en:
+
+- **otras_construcción**:	Construcción.
+- **otras_comercio**:	Comercio.
+- **otras_transporte.almacenamiento**: Transporte, correo y almacenamiento.
+- **otras_nocat**:	Otras actividades no categorizadas. 
+
+Por último, se pierde la variable de **otras_subtotal** a partir de 2012 que no altera demasiado el análisis.
+<div/> 
+
+
+### Paso 2: bind_rows()
+<div class=text-justify> 
+En segundo lugar, se procedió a unificar ambos dataframes (1993-2011 y 2012-2022) en una sola base por medio de la función bind_rows(). Con la unificación sucede que para ambos periodos van a aparecer sectores para los que no se disponen datos no porque no se hayan relevado sino porque dicha desagregación o bien no existía o bien ahora se encuentra con mayores niveles de desagregación. Por ejemplo, **otras_comercio** no aparecía en la desagregación original presentada por el INDEC para el periodo 1993-2011 y, sin embargo, en la base generada aparecerá virtualmente para dicho periodo pero imputada con un valor perdido (*NA*). De manera inversa, **otras_resto** no corresponde a la desagregación para 2012-2022 pero aparecerá en la  base también con NA.
+
+Para tener en claro lo anterior, se tiene en cuenta el **Cuadro 1**. Entonces, en la base conformada, la desagregación sectorial para cada periodo se la reconoce con id = 1, en el caso de  1993-2011, y con id = 2, en el caso de 2012-2022. 
+<div/> 
+
+```{r bind_rows, message=FALSE, warning=FALSE, include=TRUE, echo = TRUE}
+#según el modo de presentación compatible con bind_rows()
+##1993 a 2011, id =1 
+##2012 a 2022, id = 2
+
+help(bind_rows)
+
+base.ENGE_1993a2022.bind <- bind_rows(list(ENGE_1993a2011,ENGE_2012a2022), .id = "id")
+
+#Exportar a excel la base única con todas los sectores como columnas con el identificador de compatibilidad sectorial (id)
+write.xlsx(base.ENGE_1993a2022.bind,"Output/base.ENGE_1993a2022_wider.id.xlsx")
+
+#Pivoteo
+base.ENGE_1993a2022.bind <- base.ENGE_1993a2022.bind %>% 
+  pivot_longer(cols = 5:29,
+               names_to = "sector",
+               values_to = "valor")
+
+#Exportar a excel base pivoteada de todos los sectores en una sola columna con el identificador de compatibilidad sectorial (id)
+write.xlsx(base.ENGE_1993a2022.bind,"Output/base.ENGE_1993a2022_longer.id.xlsx")
+
+```
+<div class=text-justify>
+El resultado de esta instancia inicial de trabajo es una base completa de la ENGE que abarca desde 1993 hasta 2022, tanto en su forma horizontal con los sectores en columnas separadas (base.ENGE_1993a2022_wider.id.xlsx) como en su forma vertical con todos los sectores en una sola columna (base.ENGE_1993a2022_longer.id.xlsx).
+
+Se espera procesar la base en el futuro para analizar posteriormente algunos indicadores seleccionados o generar nuevos a partir de los datos disponibles.
+<div/>
+
+# Unificacion de unidades
+```{r}
+df_enge = base.ENGE_1993a2022.bind 
+head(df_enge)
+```
+```{r}
+
+prop_missing <- apply(is.na(df_enge), 2, function(x) sum(x) / nrow(df_enge))
+prop_missing
+```
+
+
+```{r}
+# df_enge <-  df_enge%>% 
+#   filter(!is.na(valor))
+table(df_enge$unidad)
+```
+
+## Indicadores en pesos
+
+```{r}
+
+df_homogeneo <- df_enge %>% 
+  rbind(df_enge %>% 
+          filter(unidad == "pesos.millones") %>% 
+          mutate(valor = valor * 1e6,
+                 unidad = 'pesos')
+        ) %>% 
+  rbind(df_enge %>% 
+          filter(unidad == "pesosmiles") %>% 
+          mutate(valor = valor * 1e3,
+                 unidad = 'pesos') 
+        ) %>% 
+  filter(  !(unidad  %in% c("pesos.millones", "pesosmiles")) )
+
+print(table(df_homogeneo$unidad))  
+print('cantidad de filas iguales?')
+print(nrow (df_homogeneo) == nrow (df_enge)) 
+tail (df_homogeneo) 
+```
+
+```{r}
+df_pesos <- df_homogeneo %>% filter(unidad %in% c("pesos"))
+
+# Get unique values of "indicador"
+unique_indicadores_pesos <- unique(df_pesos$indicador)
+unique_indicadores_pesos
+```
+
+```{r}
+# Group by 'anio' and count the number of unique 'indicador' values in each group
+df_grouped <- df_pesos %>%
+  group_by(anio) %>%
+  summarise(count = n_distinct(indicador)) %>% 
+  arrange(count)
+print(df_grouped)
+```
+### Indicadores que faltan por año
+```{r}
+# Assuming your dataframes are called 'df_homogeneo' and 'df_pesos' (as defined earlier)
+
+# Efficiently compare unique indicators with indicators in each year
+missing_indicators_by_year <- function(unique_indicators, df_grouped) {
+  missing_indicators <- sapply(df_grouped$anio, function(year) {
+    # Filter indicators for the current year
+    year_indicators <- df_homogeneo %>%
+      filter(anio == year & unidad %in% c("pesos")) %>%
+      pull(indicador)  # Extract only 'indicador' values
+    
+    # Find missing indicators in the current year
+    missing <- setdiff(unique_indicators, year_indicators)
+    return(paste(missing, collapse = ", "))  # Combine missing indicators with comma
+  })
+  
+  # Combine missing indicators from all years into a data frame
+  missing_indicators_df <- data.frame(anio = df_grouped$anio, missing_variables = missing_indicators)
+  return(missing_indicators_df)
+}
+
+# Get the missing indicators by year
+missing_indicators_by_year <- missing_indicators_by_year(unique_indicadores_pesos, df_grouped)
+
+# Print the missing indicators by year (desired format)
+print(missing_indicators_by_year)
+
+```
+
+
+## Indicadores con unidad en porciento y coeficiente
+
+```{r}
+see_unique_unidades <- function(df, unidades){
+  
+  df_filtered <- df %>% filter(unidad %in% unidades)
+  
+  # Get unique values of "indicador"
+  unique_indicadores <- unique(df_filtered$indicador)
+  unique_indicadores
+}
+cat('coeficiente\n')
+see_unique_unidades(df_enge, 'coeficiente')
+cat('\nporciento\n')
+see_unique_unidades(df_enge, 'porciento')
+```
+
+
+
+### Indicadores con sobre
+```{r}
+filtered_indices <- which(grepl(".sobre.", df_enge$indicador))
+
+# Filter the dataframe using the indices
+df_filtered <- df_enge[filtered_indices, ]
+unique(df_filtered$indicador)
+```
+
+
+```{r}
+df_enge %>%
+  filter(str_detect(indicador, "\\.sobre")) %>%
+  count(unidad, indicador)
+```
+
+
+# Elaboración de indicadores
+
+```{r nuevos_indicadores, message=FALSE, warning=FALSE, echo = TRUE}
+#Reestructuro la base pivoteando los indicadores en columnas como variable separadas
+# base.ENGE_1993a2022.wider <- base.ENGE_1993a2022.bind %>% 
+#   pivot_wider(names_from  = c(indicador,unidad),
+#               names_sep = "_",
+#               values_from = valor)
+
+#problema de que me convirtió los vectores en listas
+
+#Buscar alguna manera de reemplazar los NULL por NA
+
+
+```
+
+```{r}
+
+df_pivot <- df_homogeneo %>%
+  filter(unidad %in% c("pesos", "cantidad") | indicador %in% c(
+    "salarios.en.VAB", "impuestos.net.subsidios.en.VAB",
+    "act.corriente.sobre.act.total", "amortizaciones.en.VAB"
+  )) %>%
+  select(-unidad) %>% 
+   group_by(anio, sector, indicador) %>%
+  # mutate(id=row_number())
+  summarise(valor = sum(valor, na.rm = TRUE)) %>%
+  ungroup() %>%
+  pivot_wider(names_from = indicador, values_from = valor)
+  # unite("id", indicador, anio, sector, remove = FALSE) %>%
+  # pivot_wider(names_from = indicador,
+  #             values_from = valor,
+  #             values_fn = list(valor = ~ first(.x))) %>%
+  # select(-id)
+  
+  
+  # # unnest_wider(valor, names_from = indicador)
+  # pivot_wider(names_from = indicador,
+  #             values_from = valor,
+  #             values_fn = list(valor = unlist)) %>%
+  # unnest(cols = everything())
+```
+
+
+```{r}
+# summary(df_pivot)
+glimpse(df_pivot)
+
+```
+
+
+
+```{r}
+data_missing <- df_pivot %>%
+  # Summarize missing values (is.na) for each column
+  summarize(across(.fns = ~mean(is.na(.x)))) %>% 
+  # summarize(across(.fns = ~sum(is.na(.x))/nrow(.x)))
+  reshape2::melt()
+data_missing
+```
+
+
+
+```{r}
+
+# Assuming your data is in a variable named 'data'
+data_missing %>%
+  # Reshape data for ggplot2
+  # pivot_longer(names = "variable", values_from = "value", values_def = last()) %>%
+  # Create bar chart with ggplot2
+  ggplot(aes(x = variable, y = value)) +
+  geom_col(stat = "identity", fill = "skyblue", width = 0.5) +  # Adjust bar width
+  # Add text labels with round(value, 2) for 2 decimal places
+  geom_text(aes(label = round(value, 2), x = variable, y = value + 0.02), 
+            vjust = -0.5, hjust = 1, size = 3, angle = 60) +  # Rotate text further
+  labs(title = "Proportion of Missing Values",
+       x = "Variable",
+       y = "Missing Proportion") +
+  # Adjust x-axis labels for readability (optional)
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+
+```
+
+
+
+```{r faltantes, message=FALSE, warning=FALSE, echo = TRUE}
+library(visdat) # visualización de datos
+library(naniar)
+
+vis_miss(base.ENGE_1993a2022.wider,sort_miss = T,cluster = T,warn_large_data = T)
+
+```
+
+
+## Posibles cálculos
+<div class=text-justify>
+Posibles calculos
+
+- VAB a precios basicos = VAB*(1+impuestos.net.subsidios.en.VAB/100)
+- Amortizaciones = amortizaciones en vab*vab
+- Productividad_corrientes = VAB a precios basicos / empleados
+- IPI = indice de precios implícitos del VAB por rama, año a definir, buscar en indec
+- Indice productividad (IPT) (en reales) = Productividad corrientes / IPI
+- Masa salarial = (costo salarial en vab/100)*vab  
+- Consumo intermedio = VBP-VAB
+- Ganancia antes de impuestos = VAB a precios basicos - Amortizaciones - masa salarial
+- Impuestos a las ganancias = buscar
+- Ganancia despues de impuestos = VAB a precios basicos - Amortizaciones - costo salarial - impuestos a las ganancias
+- Activo corriente = act.corriente_sobre_act.total*activo
+- activo no corriente = activo-activo corriente
+- Stock de capital = (amortizaciones_en_vab*vab)*depreciación anual
+- Indice consumo capital fijo= amortizaciones/activo no corriente
+- Rotación de capital aproximada = (amortizaciones + masa salarial + consumo intermedio)/activo corriente
+- Capital variable adelantado = masa salarial / rotación
+- Capital constante circulante adelantado = consumo intermedio / rotación
+Tasa de ganancia = Ganancia / (stock de capital + capital variable adelantado + capital constante circulante adelantado)
+<div/>
+
+```{r}
+names(df_pivot)
+```
+```{r}
+# summary(df_pivot$amortizaciones)
+```
+
+
+```{r}
+df_indicadores <-  df_pivot %>% 
+  mutate(VAB.precios.basicos = VAB *((1 +impuestos.net.subsidios.en.VAB)/100),
+         amortizaciones = amortizaciones.en.VAB*VAB,
+
+         productividad_corrientes = VAB.precios.basicos / empleo.asalariado,
+        # - IPI = indice de precios implícitos del VAB por rama, año a definir, buscar en indec
+        # - Indice productividad (IPT) (en reales) = Productividad corrientes / IPI
+        masa_salarial = (salarios.en.VAB/100)*VAB.precios.basicos,
+        consumo_intermedio = VBP-VAB.precios.basicos,
+        ganancia_antes_de_impuestos = VAB.precios.basicos - amortizaciones - masa_salarial,
+        # - Impuestos a las ganancias = buscar
+        ganancia_despues_impuestos = VAB.precios.basicos - amortizaciones - masa_salarial,# - impuestos a las ganancias
+        activo_corriente = act.corriente.sobre.act.total*activo,
+        activo_no_corriente = activo-activo_corriente,
+        stock_de_capital = (amortizaciones.en.VAB*VAB)*0.06,
+        indice_consumo_capital_fijo= amortizaciones/activo_no_corriente,
+        rotacion_capital_aproximada = (amortizaciones + masa_salarial + consumo_intermedio)/activo_corriente,
+        capital_variable_adelantado = masa_salarial / rotacion_capital_aproximada,
+        capital_constante_circulante_adelantado = consumo_intermedio / rotacion_capital_aproximada,
+        tasa_de_ganancia = result.oper / (capital_variable_adelantado + capital_constante_circulante_adelantado + stock_de_capital) 
+        
+        )
+df_indicadores         
+```
+
+```{r}
+# Write the data frame to a CSV file
+write.csv(df_indicadores, file = 'enge_indicadores.csv', row.names = FALSE)
+```
+
+```{r}
+# summary(df_indicadores)
+unique(df_indicadores$sector)
+
+```
+
+
+```{r}
+#Hago algunos cálculo de prueba con lo que ya tengo
+base.ENGE_1993a2022.wider <- base.ENGE_1993a2022.wider %>% 
+  mutate(VAB.precios.basicos = VAB_pesos.millones*((1 +impuestos.net.subsidios.en.VAB_porciento)/100))
+
+class(base.ENGE_1993a2022.wider$amortizaciones.en.VAB_porciento)
+
+```
+
+
+# Glosario
+Por último se presenta el glosario completo de de indicadores, sectores y origen del capital:
+```{r glosario, message=FALSE, warning=FALSE, echo = TRUE}
+#Levanto la tabla con el glosario completo de indicadores, sectores y origen del capital
+glosario <- openxlsx::read.xlsx(
+  xlsxFile = "Fuentes/0. resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  sheet = 6)
+
+#elaboro cuadro prolijo
+glosario %>% kbl(caption = "Cuadro 2. Glosario completo de variables, sectores y origen del capital") %>%
+  kable_paper("hover", full_width = F)
+```
+
