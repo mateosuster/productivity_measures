@@ -12,6 +12,8 @@
 3) Cruzar la data con la base de corporaciones (ver remision de utilidades, paper de Kliman)
 
 
+
+
 revisar rotacion BEA
 	que residuo inventario activos no sea muy chico
 	compararlo en relacion al activo 
@@ -24,3 +26,9 @@ brecha de productividad empresas eeuu
 
 ## PWT 
 	terminar de cargar, emprolijar, visualizacion
+
+
+
+
+
+
