@@ -1,4 +1,3 @@
-
 # Pendientes
 ## BEA
 1) Ver si las caracteristicas de la NDIT se observan en la base
