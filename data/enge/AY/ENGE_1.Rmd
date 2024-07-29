@@ -474,7 +474,11 @@ df_indicadores
 
 ```{r}
 # Write the data frame to a CSV file
-write.csv(df_indicadores, file = 'enge_indicadores.csv', row.names = FALSE)
+write.csv(df_indicadores, file = 'Output/enge_indicadores.csv', row.names = FALSE)
+
+# .xlsx file (View JK)
+write.xlsx(df_pivot, file = "Output/df_enge_1993_2022_pivot.xlsx")
+write.xlsx(df_indicadores, file = "Output/enge_indicadores.xlsx")
 ```
 
 ```{r}
