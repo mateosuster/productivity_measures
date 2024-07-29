@@ -78,19 +78,19 @@ Los cuadros extraídos fueron volcados en un archivo propio .xlsx separado por h
 #Levanto las hojas del excel por separado correspondiente a las distintas presentaciones de la ENGE en cada periodo
 
 ENGE_1993a2004 <- openxlsx::read.xlsx(
-  xlsxFile = "Fuentes/0. resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
   sheet = 1)
 
 ENGE_2004a2011 <- openxlsx::read.xlsx(
-  xlsxFile = "Fuentes/0. resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
   sheet = 2)
 
 ENGE_2012a2016 <- openxlsx::read.xlsx(
-  xlsxFile = "Fuentes/0. resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
   sheet = 3)
 
 ENGE_2017a2022 <- openxlsx::read.xlsx(
-  xlsxFile = "Fuentes/0. resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
   sheet = 4)
 
 ```
@@ -135,7 +135,7 @@ A continuación se presenta el **Cuadro 1** en el que se resume el criterio de u
 ```{r sectores, message=FALSE, warning=FALSE, echo = TRUE}
 #Levanto la tabla con la desagregación sectorial
 sectores <- openxlsx::read.xlsx(
-  xlsxFile = "Fuentes/0. resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
   sheet = 7)
 
 sectores %>% kbl(caption = "Cuadro 1. Desagregación sectorial por periodo") %>%
@@ -225,7 +225,7 @@ df_homogeneo <- df_enge %>%
                  unidad = 'pesos')
         ) %>% 
   rbind(df_enge %>% 
-          filter(unidad == "pesosmiles") %>% 
+          filter(unidad == "pesos.miles") %>% 
           mutate(valor = valor * 1e3,
                  unidad = 'pesos') 
         ) %>% 
@@ -486,10 +486,10 @@ unique(df_indicadores$sector)
 
 ```{r}
 #Hago algunos cálculo de prueba con lo que ya tengo
-base.ENGE_1993a2022.wider <- base.ENGE_1993a2022.wider %>% 
-  mutate(VAB.precios.basicos = VAB_pesos.millones*((1 +impuestos.net.subsidios.en.VAB_porciento)/100))
+#base.ENGE_1993a2022.wider <- base.ENGE_1993a2022.wider %>% 
+ # mutate(VAB.precios.basicos = VAB_pesos.millones*((1 +impuestos.net.subsidios.en.VAB_porciento)/100))
 
-class(base.ENGE_1993a2022.wider$amortizaciones.en.VAB_porciento)
+#class(base.ENGE_1993a2022.wider$amortizaciones.en.VAB_porciento)
 
 ```
 
@@ -499,7 +499,7 @@ Por último se presenta el glosario completo de de indicadores, sectores y orige
 ```{r glosario, message=FALSE, warning=FALSE, echo = TRUE}
 #Levanto la tabla con el glosario completo de indicadores, sectores y origen del capital
 glosario <- openxlsx::read.xlsx(
-  xlsxFile = "Fuentes/0. resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
   sheet = 6)
 
 #elaboro cuadro prolijo
