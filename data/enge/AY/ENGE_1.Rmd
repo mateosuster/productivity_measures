@@ -507,7 +507,8 @@ glosario <- openxlsx::read.xlsx(
   sheet = 6)
 
 #elaboro cuadro prolijo
-glosario %>% kbl(caption = "Cuadro 2. Glosario completo de variables, sectores y origen del capital") %>%
-  kable_paper("hover", full_width = F)
+write.xlsx(glosario, file = "Output/glosario.xlsx")
+
+glosario %>% kbl(caption = "Cuadro 2. Glosario completo de variables, sectores y origen del capital") %>% kable_paper("hover", full_width = F)
 ```
 
