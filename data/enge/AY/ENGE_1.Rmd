@@ -504,7 +504,13 @@ Por último se presenta el glosario completo de de indicadores, sectores y orige
 #Levanto la tabla con el glosario completo de indicadores, sectores y origen del capital
 glosario <- openxlsx::read.xlsx(
   xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
-  sheet = 6)
+  sheet = 6) %>%  #reexpreso a la luz de la homogeneización de mateo
+  mutate(Unidad = case_when(Unidad.medida == "$" ~ "pesos",
+                            Unidad.medida == "$miles" ~ "pesos",
+                            Unidad.medida == "$millones" ~ "pesos",
+                            Unidad.medida == "cantidad" ~ "cantidad",
+                            Unidad.medida == "porciento" ~ "porciento")) %>% 
+  select(1,2,5,4)
 
 #elaboro cuadro prolijo
 write.xlsx(glosario, file = "Output/glosario.xlsx")
