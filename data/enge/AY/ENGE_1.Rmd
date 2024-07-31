@@ -67,21 +67,17 @@ Los cuadros extraídos fueron volcados en un archivo propio .xlsx separado por h
 ```{r read data, message=FALSE, warning=FALSE, echo = TRUE}
 #Levanto las hojas del excel por separado correspondiente a las distintas presentaciones de la ENGE en cada periodo
 
-ENGE_1993a2004 <- openxlsx::read.xlsx(
-  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
-  sheet = 1)
+# Definir la ruta del archivo
+archivo <- "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx"
 
-ENGE_2004a2011 <- openxlsx::read.xlsx(
-  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
-  sheet = 2)
+# Leer las hojas del archivo
+sheets <- c("ENGE_1993a2004", "ENGE_2004a2011", "ENGE_2012a2016", "ENGE_2017a2022")
+list_of_dataframes <- lapply(1:4, function(i) openxlsx::read.xlsx(xlsxFile = archivo, sheet = i))
 
-ENGE_2012a2016 <- openxlsx::read.xlsx(
-  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
-  sheet = 3)
+# Asignar nombres a los dataframes
+names(list_of_dataframes) <- sheets
+list2env(list_of_dataframes, .GlobalEnv)
 
-ENGE_2017a2022 <- openxlsx::read.xlsx(
-  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
-  sheet = 4)
 
 ```
 
