@@ -15,36 +15,26 @@ knitr::opts_chunk$set(
 ```
 
 ```{r librerías , message=FALSE, warning=FALSE, include= TRUE, echo=TRUE}
-# No usar notación científica. 
-options(scipen = 999) 
+
+# No usar notación científica.
+options(scipen = 999)
 
 # LOCALE EN ESPAÑOL (símbolos, fechas):
-# En Mac suele funcionar la opción que marca Segasi: 
-Sys.setlocale("LC_ALL", "es_ES.UTF-8")
+Sys.setlocale("LC_ALL", if (.Platform$OS.type == "windows") "Spanish" else "es_ES.UTF-8")
 
-# En Windows/Linux suele funcionar esta función: 
-Sys.setlocale("LC_ALL","Spanish")
-
-#Traigo conjunto de librerías que suelo usar al espacio de trabajo
-library("tidyverse")
-library("openxlsx")
-library("ggplot2")
-library("ggthemes")
-library("GGally")
-library("scales")
-library("dplyr")
-library("kableExtra")
-library('ggrepel')
-library('ggalt')
-library('GGally')
-library('ggridges')
-library('fs')
-library('purrr')
-library('rmarkdown')
-library('esquisse')
-library('treemapify')
-library('viridis')
-library("tinytex")
+# Cargar las librerías necesarias
+library(tidyverse)  # Incluye dplyr, ggplot2, etc.
+library(openxlsx)
+library(kableExtra)
+library(ggrepel)
+library(ggalt)
+library(ggridges)
+library(fs)
+library(purrr)
+library(rmarkdown)
+library(treemapify)
+library(viridis)
+library(tinytex)
 
 ```
 
