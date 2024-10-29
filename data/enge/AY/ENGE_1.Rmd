@@ -215,7 +215,7 @@ df_homogeneo <- df_enge %>%
           mutate(valor = valor * 1e3,
                  unidad = 'pesos') 
         ) %>% 
-  filter(  !(unidad  %in% c("pesos.millones", "pesosmiles")) )
+  filter(  !(unidad  %in% c("pesos.millones", "pesos.miles")) )
 
 print(table(df_homogeneo$unidad))  
 print('cantidad de filas iguales?')
@@ -325,9 +325,10 @@ df_enge %>%
 ```{r}
 
 df_pivot <- df_homogeneo %>%
-  filter(unidad %in% c("pesos", "cantidad") | indicador %in% c(
+  filter(unidad %in% c("pesos", "cantidad","porciento","coeficiente") | indicador %in% c(
     "salarios.en.VAB", "impuestos.net.subsidios.en.VAB",
-    "act.corriente.sobre.act.total", "amortizaciones.en.VAB"
+    "act.corriente.sobre.act.total", "amortizaciones.en.VAB","costo.salarial.en.VAB","	
+result.oper.en.VAB"
   )) %>%
   select(-unidad) %>% 
    group_by(anio, sector, indicador) %>%
@@ -440,14 +441,14 @@ df_indicadores <-  df_pivot %>%
          productividad_corrientes = VAB.precios.basicos / empleo.asalariado,
         # - IPI = indice de precios implícitos del VAB por rama, año a definir, buscar en indec
         # - Indice productividad (IPT) (en reales) = Productividad corrientes / IPI
-        masa_salarial = (salarios.en.VAB/100)*VAB.precios.basicos,
+        masa_salarial = (costo.salarial.en.VAB/100)*VAB.precios.basicos,
         consumo_intermedio = VBP-VAB.precios.basicos,
         ganancia_antes_de_impuestos = VAB.precios.basicos - amortizaciones - masa_salarial,
         # - Impuestos a las ganancias = buscar
         ganancia_despues_impuestos = VAB.precios.basicos - amortizaciones - masa_salarial,# - impuestos a las ganancias
         activo_corriente = act.corriente.sobre.act.total*activo,
         activo_no_corriente = activo-activo_corriente,
-        stock_de_capital = (amortizaciones.en.VAB*VAB)*0.06,
+        stock_de_capital = (amortizaciones.en.VAB*VAB)*0.06, #¿De dónde salió este 0.06?
         indice_consumo_capital_fijo= amortizaciones/activo_no_corriente,
         rotacion_capital_aproximada = (amortizaciones + masa_salarial + consumo_intermedio)/activo_corriente,
         capital_variable_adelantado = masa_salarial / rotacion_capital_aproximada,
@@ -456,6 +457,64 @@ df_indicadores <-  df_pivot %>%
         
         )
 df_indicadores         
+```
+```{r tasa_ganancia_total_2012_2022}
+
+#Gráfico de tasa de ganancia
+
+df_indicadores %>% 
+  filter(!is.na(tasa_de_ganancia) & is.finite(tasa_de_ganancia) & sector == "total") %>% 
+  select(anio, tasa_de_ganancia) %>% 
+  mutate(tasa_de_ganancia = tasa_de_ganancia*100)%>% 
+  ggplot()+
+  geom_line(size=1) +
+  theme_light() +
+  aes(x = anio, y = tasa_de_ganancia, color = "red") +
+  labs(title = "Tasa de ganancia de las grandes empresas en Argentina",
+       subtitle = "Total (2012-2022)",
+       y = "%",
+       x = "Año",
+       caption = "Fuente: ENGE - INDEC") +
+  scale_x_continuous(n.breaks = 10) +
+  scale_y_continuous(n.breaks = 5, limits = c(0,2.3)) +
+  theme(legend.position = "none",
+        axis.title.y = element_text(angle = 0))
+
+  ggsave(filename = "./Output/tasa.ganancia.total_2012_2022.png",
+       dpi = "retina", 
+       device = "png",
+       width = 10,
+       height = 7 )
+
+```
+
+
+```{r tasa_ganancia_sectores_2012_2022}
+#Gráfico de tasa de ganancia
+
+df_indicadores %>% 
+  filter(!is.na(tasa_de_ganancia) & is.finite(tasa_de_ganancia)) %>% 
+  select(anio, sector, tasa_de_ganancia) %>% 
+  mutate(tasa_de_ganancia = tasa_de_ganancia*100)%>% 
+  ggplot()+
+  geom_line() +
+  theme_light() +
+  aes(x = anio, y = tasa_de_ganancia, color = sector) +
+  labs(title = "Tasa de ganancia de las grandes empresas en Argentina",
+       subtitle = "Desagregación por sectores (2012-2022)",
+       y = "%",
+       x = "Año",
+       caption = "Fuente: ENGE - INDEC") +
+  scale_x_continuous(n.breaks = 10) +
+  scale_y_continuous(n.breaks = 10)  +
+  theme(axis.title.y = element_text(angle = 0))
+
+  ggsave(filename = "./Output/tasa.ganancia.sectores_2012_2022.png",
+       dpi = "retina", 
+       device = "png",
+       width = 10,
+       height = 7 )
+
 ```
 
 ```{r}
@@ -470,6 +529,68 @@ write.xlsx(df_indicadores, file = "Output/enge_indicadores.xlsx")
 ```{r}
 # summary(df_indicadores)
 unique(df_indicadores$sector)
+
+```
+```{r indicadores_1993-2022}
+df_indicadores.1 <-  df_pivot %>% 
+  mutate(VAB.precios.basicos = VAB *((1 +impuestos.net.subsidios.en.VAB)/100),
+         amortizaciones = amortizaciones.en.VAB*VAB,
+
+         productividad_corrientes = VAB.precios.basicos / empleo.asalariado,
+        # - IPI = indice de precios implícitos del VAB por rama, año a definir, buscar en indec
+        # - Indice productividad (IPT) (en reales) = Productividad corrientes / IPI
+        masa_salarial = (costo.salarial.en.VAB/100)*VAB.precios.basicos,
+        consumo_intermedio = VBP-VAB.precios.basicos,
+        ganancia_antes_de_impuestos = VAB.precios.basicos - amortizaciones - masa_salarial,
+        # - Impuestos a las ganancias = buscar
+        ganancia_despues_impuestos = VAB.precios.basicos - amortizaciones - masa_salarial,# - impuestos a las ganancias
+        activo_corriente = act.corriente.sobre.act.total*activo,
+        activo_no_corriente = activo-activo_corriente,
+        stock_de_capital = (amortizaciones.en.VAB*VAB)*0.06,
+        indice_consumo_capital_fijo= amortizaciones/activo_no_corriente,
+        rotacion_capital_aproximada = (amortizaciones + masa_salarial + consumo_intermedio)/activo_corriente,
+        capital_variable_adelantado = masa_salarial / rotacion_capital_aproximada,
+        capital_constante_circulante_adelantado = consumo_intermedio / rotacion_capital_aproximada,
+        result.oper = result.oper.en.VAB*VAB/100,
+        tasa_de_ganancia = result.oper / (capital_variable_adelantado + capital_constante_circulante_adelantado + stock_de_capital) 
+        
+        )
+
+df_indicadores.1
+```
+
+
+```{r tasa_ganancia_total_1993-2022}
+#Revisar proque puede ser que haya un error en los calculos para los años 1993, 1994 y 2004. Puede ser que la tasa de ganancia haya aumentado para esos años, pero los valores son demasiado altos.
+#Encontré el problema: no están los datos de activos para esos años. 
+# Solución: ¿?
+
+df_indicadores.1 %>% 
+  filter(!is.na(tasa_de_ganancia) & 
+           is.finite(tasa_de_ganancia) & 
+           sector == "total") %>% 
+  select(anio, tasa_de_ganancia) %>% 
+  mutate(tasa_de_ganancia = tasa_de_ganancia*100) %>% 
+  ggplot()+
+  geom_line(size=1) +
+  theme_light() +
+  aes(x = anio, y = tasa_de_ganancia, color = "red") +
+  labs(title = "Tasa de ganancia de las grandes empresas en Argentina",
+       subtitle = "Total (1993 - 2022)",
+       y = "%",
+       x = "Año",
+       caption = "Fuente: ENGE - INDEC") +
+  scale_x_continuous(n.breaks = 20) +
+  scale_y_continuous(n.breaks = 10, limits = c(0,4)) +
+  theme(legend.position = "none",
+        axis.title.y = element_text(angle = 0))
+  
+
+  ggsave(filename = "./Output/tasa.ganancia.total_1993_2022.png",
+       dpi = "retina", 
+       device = "png",
+       width = 10,
+       height = 7 )
 
 ```
 
