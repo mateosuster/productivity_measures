@@ -162,7 +162,19 @@ Para tener en claro lo anterior, se tiene en cuenta el **Cuadro 1**. Entonces, e
 help(bind_rows)
 
 base.ENGE_1993a2022.bind <- bind_rows(list(ENGE_1993a2011,ENGE_2012a2022), .id = "id")
+```
 
+```{r duplicates}
+#ME fijo si hay observaciones repetidas
+base.ENGE_1993a2022.bind %>%
+    group_by(anio,indicador) %>%  # Agrupar por id_individual
+    filter(n() > 1)
+
+#No hay observaciones repetidas
+```
+
+
+```{r export, message=FALSE, warning=FALSE, include=TRUE, echo = TRUE}
 #Exportar a excel la base única con todas los sectores como columnas con el identificador de compatibilidad sectorial (id)
 write.xlsx(base.ENGE_1993a2022.bind,"Output/base.ENGE_1993a2022_wider.id.xlsx")
 
