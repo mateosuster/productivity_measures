@@ -561,7 +561,7 @@ df_indicadores.1
 
 
 ```{r tasa_ganancia_total_1993-2022}
-#Revisar proque puede ser que haya un error en los calculos para los años 1993, 1994 y 2004. Puede ser que la tasa de ganancia haya aumentado para esos años, pero los valores son demasiado altos.
+#Revisar proque puede ser que haya un error en los cálculos para los años 1993, 1994 y 2004. Puede ser que la tasa de ganancia haya aumentado para esos años, pero los valores son demasiado altos.
 #Encontré el problema: no están los datos de activos para esos años. 
 # Solución: ¿?
 
