@@ -130,7 +130,7 @@ sectores %>% kbl(caption = "Cuadro 1. Desagregación sectorial por periodo") %>%
 <div class=text-justify> 
 Los **...** significan desagregaciones inexistentes en 1993-2011 que luego pasaron a ser consideradas en 2012-2022  dentro de los sectores antecedidos.
 
-Es así que se puede ver como dentro de lo que antes aparecía como **manufactura_resto**, a partir de 2012 se desagrega en:
+Es así que se puede ver que dentro de lo que antes aparecía como **manufactura_resto**, a partir de 2012 se desagrega en:
 
 - **manufactura_textiles**:	Textiles y cueros de la industria manufacturera. 
 - **manufactura_minerales**: Minerales no metálicos, metales y productos de metal de la industria manufacturera. 
