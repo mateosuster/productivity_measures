@@ -3,8 +3,9 @@ title: "Procesamiento de la Encuesta Nacional a Grandes Empresas"
 author: "Alejandro Yacovone"
 date: "2024-04-01"
 output:
-  html_notebook:
+  html_document:
     toc: true
+    code_folding: hide
 ---
 ```{r setup, include=FALSE, message=FALSE, warning = FALSE}
 knitr::opts_chunk$set(
@@ -14,6 +15,7 @@ knitr::opts_chunk$set(
 )
 ```
 
+
 ```{r librerías , message=FALSE, warning=FALSE, include= TRUE, echo=TRUE}
 
 # No usar notación científica.
@@ -22,12 +24,28 @@ options(scipen = 999)
 # LOCALE EN ESPAÑOL (símbolos, fechas):
 Sys.setlocale("LC_ALL", if (.Platform$OS.type == "windows") "Spanish" else "es_ES.UTF-8")
 
+#Instalo librerias
+install.packages(c(
+  "kableExtra",
+  "ggrepel",
+  "ggalt",
+  "ggridges",
+  "fs",
+  "purrr",
+  "rmarkdown",
+  "treemapify",
+  "viridis",
+  "tinytex"
+))
+
 # Cargar las librerías necesarias
 library(tidyverse)  # Incluye dplyr, ggplot2, etc.
 library(openxlsx)
 library(kableExtra)
 library(ggrepel)
-library(ggalt)
+
+# library(ggalt)
+
 library(ggridges)
 library(fs)
 library(purrr)
@@ -334,7 +352,8 @@ df_enge %>%
 
 ```
 
-```{r}
+
+```{r eval=FALSE, include=FALSE}
 
 df_pivot <- df_homogeneo %>%
   filter(unidad %in% c("pesos", "cantidad","porciento","coeficiente") | indicador %in% c(
@@ -406,6 +425,7 @@ data_missing %>%
 
 ```{r faltantes, message=FALSE, warning=FALSE, echo = TRUE}
 library(visdat) # visualización de datos
+
 library(naniar)
 
 vis_miss(base.ENGE_1993a2022.wider,sort_miss = T,cluster = T,warn_large_data = T)
@@ -470,6 +490,42 @@ df_indicadores <-  df_pivot %>%
         )
 df_indicadores         
 ```
+```{r}
+library(dplyr)
+
+# df_pivot contiene las columnas: anio, sector, y el resto son los indicadores numéricos
+
+df_indicadores <- df_pivot %>%
+  
+  # PASO 1: Limpieza de 0s a NA en TODAS las columnas numéricas
+  # La función 'where(is.numeric)' selecciona todas las columnas que no son 'anio' o 'sector'.
+  mutate(across(where(is.numeric), ~na_if(., 0))) %>% 
+  
+  # PASO 2: Generación de Indicadores
+  # El resto del código de cálculo permanece igual, pero ahora opera sobre un dataframe limpio de 0s engañosos.
+  mutate(
+    VAB.precios.basicos = VAB * ((1 + impuestos.net.subsidios.en.VAB) / 100),
+    amortizaciones = amortizaciones.en.VAB * VAB,
+    
+    productividad_corrientes = VAB.precios.basicos / empleo.asalariado,
+    masa_salarial = (costo.salarial.en.VAB / 100) * VAB.precios.basicos,
+    consumo_intermedio = VBP - VAB.precios.basicos,
+    ganancia_antes_de_impuestos = VAB.precios.basicos - amortizaciones - masa_salarial,
+    ganancia_despues_impuestos = VAB.precios.basicos - amortizaciones - masa_salarial,
+    activo_corriente = act.corriente.sobre.act.total * activo,
+    activo_no_corriente = activo - activo_corriente,
+    stock_de_capital = (amortizaciones.en.VAB * VAB) * 0.06,
+    indice_consumo_capital_fijo = amortizaciones / activo_no_corriente,
+    rotacion_capital_aproximada = (amortizaciones + masa_salarial + consumo_intermedio) / activo_corriente,
+    capital_variable_adelantado = masa_salarial / rotacion_capital_aproximada,
+    capital_constante_circulante_adelantado = consumo_intermedio / rotacion_capital_aproximada,
+    tasa_de_ganancia = result.oper / (capital_variable_adelantado + capital_constante_circulante_adelantado + stock_de_capital)
+  )
+
+df_indicadores
+```
+
+
 ```{r tasa_ganancia_total_2012_2022}
 
 #Gráfico de tasa de ganancia
