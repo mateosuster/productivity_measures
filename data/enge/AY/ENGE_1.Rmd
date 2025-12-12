@@ -86,10 +86,10 @@ Los cuadros extraídos fueron volcados en un archivo propio .xlsx separado por h
 #Levanto las hojas del excel por separado correspondiente a las distintas presentaciones de la ENGE en cada periodo
 
 # Definir la ruta del archivo
-archivo <- "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx"
+archivo <- "Fuentes/0.resumen_macro_eco-finan_enge_1993-2023_Yacovone.v2.2.1.xlsx"
 
 # Leer las hojas del archivo
-sheets <- c("ENGE_1993a2004", "ENGE_2004a2011", "ENGE_2012a2016", "ENGE_2017a2022")
+sheets <- c("ENGE_1993a2004", "ENGE_2004a2011", "ENGE_2012a2016", "ENGE_2017a2023")
 list_of_dataframes <- lapply(1:4, function(i) openxlsx::read.xlsx(xlsxFile = archivo, sheet = i))
 
 # Asignar nombres a los dataframes
@@ -123,12 +123,12 @@ ENGE_1993a2011 <- merge(x = ENGE_1993a2004,
                         all = T)
 
 ## Del 2012 en adelante se apmlía la desagregación de sectores
-ENGE_2012a2022 <- merge(x = ENGE_2012a2016,
-                        y = ENGE_2017a2022,
+ENGE_2012a2023 <- merge(x = ENGE_2012a2016,
+                        y = ENGE_2017a2023,
                         all = T)
 
 #Quito las que ya no uso
-rm(ENGE_1993a2004,ENGE_2004a2011,ENGE_2012a2016,ENGE_2017a2022)
+rm(ENGE_1993a2004,ENGE_2004a2011,ENGE_2012a2016,ENGE_2017a2023)
 
 ```
 
@@ -139,7 +139,7 @@ A continuación se presenta el **Cuadro 1** en el que se resume el criterio de u
 ```{r sectores, message=FALSE, warning=FALSE, echo = TRUE}
 #Levanto la tabla con la desagregación sectorial
 sectores <- openxlsx::read.xlsx(
-  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2023_Yacovone.v2.2.1.xlsx", 
   sheet = 7)
 
 sectores %>% kbl(caption = "Cuadro 1. Desagregación sectorial por periodo") %>%
@@ -179,12 +179,12 @@ Para tener en claro lo anterior, se tiene en cuenta el **Cuadro 1**. Entonces, e
 
 help(bind_rows)
 
-base.ENGE_1993a2022.bind <- bind_rows(list(ENGE_1993a2011,ENGE_2012a2022), .id = "id")
+base.ENGE_1993a2023.bind <- bind_rows(list(ENGE_1993a2011,ENGE_2012a2023), .id = "id")
 ```
 
 ```{r duplicates}
 #ME fijo si hay observaciones repetidas
-base.ENGE_1993a2022.bind %>%
+base.ENGE_1993a2023.bind %>%
     group_by(anio,indicador) %>%  # Agrupar por id_individual
     filter(n() > 1)
 
@@ -194,16 +194,16 @@ base.ENGE_1993a2022.bind %>%
 
 ```{r export, message=FALSE, warning=FALSE, include=TRUE, echo = TRUE}
 #Exportar a excel la base única con todas los sectores como columnas con el identificador de compatibilidad sectorial (id)
-write.xlsx(base.ENGE_1993a2022.bind,"Output/base.ENGE_1993a2022_wider.id.xlsx")
+write.xlsx(base.ENGE_1993a2023.bind,"Output/base.ENGE_1993a2023_wider.id.xlsx")
 
 #Pivoteo
-base.ENGE_1993a2022.bind <- base.ENGE_1993a2022.bind %>% 
+base.ENGE_1993a2023.bind <- base.ENGE_1993a2023.bind %>% 
   pivot_longer(cols = 5:29,
                names_to = "sector",
                values_to = "valor")
 
 #Exportar a excel base pivoteada de todos los sectores en una sola columna con el identificador de compatibilidad sectorial (id)
-write.xlsx(base.ENGE_1993a2022.bind,"Output/base.ENGE_1993a2022_longer.id.xlsx")
+write.xlsx(base.ENGE_1993a2023.bind,"Output/base.ENGE_1993a2023_longer.id.xlsx")
 
 ```
 <div class=text-justify>
@@ -214,7 +214,7 @@ Se espera procesar la base en el futuro para analizar posteriormente algunos ind
 
 # Unificacion de unidades
 ```{r}
-df_enge = base.ENGE_1993a2022.bind 
+df_enge = base.ENGE_1993a2023.bind 
 head(df_enge)
 ```
 ```{r}
@@ -269,6 +269,7 @@ df_grouped <- df_pesos %>%
   arrange(count)
 print(df_grouped)
 ```
+
 ### Indicadores que faltan por año
 ```{r}
 # Assuming your dataframes are called 'df_homogeneo' and 'df_pesos' (as defined earlier)
@@ -526,7 +527,7 @@ df_indicadores
 ```
 
 
-```{r tasa_ganancia_total_2012_2022}
+```{r tasa_ganancia_total_2012_2023}
 
 #Gráfico de tasa de ganancia
 
@@ -539,7 +540,7 @@ df_indicadores %>%
   theme_light() +
   aes(x = anio, y = tasa_de_ganancia, color = "red") +
   labs(title = "Tasa de ganancia de las grandes empresas en Argentina",
-       subtitle = "Total (2012-2022)",
+       subtitle = "Total (2012-2023)",
        y = "%",
        x = "Año",
        caption = "Fuente: ENGE - INDEC") +
@@ -548,7 +549,7 @@ df_indicadores %>%
   theme(legend.position = "none",
         axis.title.y = element_text(angle = 0))
 
-  ggsave(filename = "./Output/tasa.ganancia.total_2012_2022.png",
+  ggsave(filename = "./Output/tasa.ganancia.total_2012_2023.png",
        dpi = "retina", 
        device = "png",
        width = 10,
@@ -557,7 +558,7 @@ df_indicadores %>%
 ```
 
 
-```{r tasa_ganancia_sectores_2012_2022}
+```{r tasa_ganancia_sectores_2012_2023}
 #Gráfico de tasa de ganancia
 
 df_indicadores %>% 
@@ -569,7 +570,7 @@ df_indicadores %>%
   theme_light() +
   aes(x = anio, y = tasa_de_ganancia, color = sector) +
   labs(title = "Tasa de ganancia de las grandes empresas en Argentina",
-       subtitle = "Desagregación por sectores (2012-2022)",
+       subtitle = "Desagregación por sectores (2012-2023)",
        y = "%",
        x = "Año",
        caption = "Fuente: ENGE - INDEC") +
@@ -577,7 +578,7 @@ df_indicadores %>%
   scale_y_continuous(n.breaks = 10)  +
   theme(axis.title.y = element_text(angle = 0))
 
-  ggsave(filename = "./Output/tasa.ganancia.sectores_2012_2022.png",
+  ggsave(filename = "./Output/tasa.ganancia.sectores_2012_2023.png",
        dpi = "retina", 
        device = "png",
        width = 10,
@@ -590,7 +591,7 @@ df_indicadores %>%
 write.csv(df_indicadores, file = 'Output/enge_indicadores.csv', row.names = FALSE)
 
 # .xlsx file (View JK)
-write.xlsx(df_pivot, file = "Output/df_enge_1993_2022_pivot.xlsx")
+write.xlsx(df_pivot, file = "Output/df_enge_1993_2023_pivot.xlsx")
 write.xlsx(df_indicadores, file = "Output/enge_indicadores.xlsx")
 ```
 
@@ -599,7 +600,8 @@ write.xlsx(df_indicadores, file = "Output/enge_indicadores.xlsx")
 unique(df_indicadores$sector)
 
 ```
-```{r indicadores_1993-2022}
+
+```{r indicadores_1993-2023}
 df_indicadores.1 <-  df_pivot %>% 
   mutate(VAB.precios.basicos = VAB *((1 +impuestos.net.subsidios.en.VAB)/100),
          amortizaciones = amortizaciones.en.VAB*VAB,
@@ -628,7 +630,7 @@ df_indicadores.1
 ```
 
 
-```{r tasa_ganancia_total_1993-2022}
+```{r tasa_ganancia_total_1993-2023}
 #Revisar proque puede ser que haya un error en los cálculos para los años 1993, 1994 y 2004. Puede ser que la tasa de ganancia haya aumentado para esos años, pero los valores son demasiado altos.
 #Encontré el problema: no están los datos de activos para esos años. 
 # Solución: ¿?
@@ -644,7 +646,7 @@ df_indicadores.1 %>%
   theme_light() +
   aes(x = anio, y = tasa_de_ganancia, color = "red") +
   labs(title = "Tasa de ganancia de las grandes empresas en Argentina",
-       subtitle = "Total (1993 - 2022)",
+       subtitle = "Total (1993 - 2023)",
        y = "%",
        x = "Año",
        caption = "Fuente: ENGE - INDEC") +
@@ -654,7 +656,7 @@ df_indicadores.1 %>%
         axis.title.y = element_text(angle = 0))
   
 
-  ggsave(filename = "./Output/tasa.ganancia.total_1993_2022.png",
+  ggsave(filename = "./Output/tasa.ganancia.total_1993_2023.png",
        dpi = "retina", 
        device = "png",
        width = 10,
@@ -678,7 +680,7 @@ Por último se presenta el glosario completo de de indicadores, sectores y orige
 ```{r glosario, message=FALSE, warning=FALSE, echo = TRUE}
 #Levanto la tabla con el glosario completo de indicadores, sectores y origen del capital
 glosario <- openxlsx::read.xlsx(
-  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2022_Yacovone.v2.2.1.xlsx", 
+  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2023_Yacovone.v2.2.1.xlsx", 
   sheet = 6) %>%  #reexpreso a la luz de la homogeneización de mateo
   mutate(Unidad = case_when(Unidad.medida == "$" ~ "pesos",
                             Unidad.medida == "$miles" ~ "pesos",
