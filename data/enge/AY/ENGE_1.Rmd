@@ -16,8 +16,7 @@ knitr::opts_chunk$set(
 ```
 
 
-```{r librerías , message=FALSE, warning=FALSE, include= TRUE, echo=TRUE}
-
+```{r librerías, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 # No usar notación científica.
 options(scipen = 999)
 
@@ -37,7 +36,10 @@ install.packages(c(
   "viridis",
   "tinytex"
 ))
+```
 
+
+```{r librerías_1 , message=FALSE, warning=FALSE, include= TRUE, echo=TRUE}
 # Cargar las librerías necesarias
 library(tidyverse)  # Incluye dplyr, ggplot2, etc.
 library(openxlsx)
@@ -341,10 +343,10 @@ df_enge %>%
 
 ```{r nuevos_indicadores, message=FALSE, warning=FALSE, echo = TRUE}
 #Reestructuro la base pivoteando los indicadores en columnas como variable separadas
-# base.ENGE_1993a2024.wider <- base.ENGE_1993a2024.bind %>% 
-#   pivot_wider(names_from  = c(indicador,unidad),
-#               names_sep = "_",
-#               values_from = valor)
+ base.ENGE_1993a2024.wider <- base.ENGE_1993a2024.bind %>% 
+  pivot_wider(names_from  = c(indicador,unidad),
+               names_sep = "_",
+              values_from = valor)
 
 #problema de que me convirtió los vectores en listas
 
@@ -354,7 +356,7 @@ df_enge %>%
 ```
 
 
-```{r eval=FALSE, include=FALSE}
+```{r echo=TRUE}
 
 df_pivot <- df_homogeneo %>%
   filter(unidad %in% c("pesos", "cantidad","porciento","coeficiente") | indicador %in% c(
@@ -429,7 +431,7 @@ library(visdat) # visualización de datos
 
 library(naniar)
 
-vis_miss(base.ENGE_1993a2022.wider,sort_miss = T,cluster = T,warn_large_data = T)
+vis_miss(base.ENGE_1993a2024.wider,sort_miss = T,cluster = T,warn_large_data = T)
 
 ```
 
@@ -591,7 +593,7 @@ df_indicadores %>%
 write.csv(df_indicadores, file = 'Output/enge_indicadores.csv', row.names = FALSE)
 
 # .xlsx file (View JK)
-write.xlsx(df_pivot, file = "Output/df_enge_1993_2023_pivot.xlsx")
+write.xlsx(df_pivot, file = "Output/df_enge_1993_2024_pivot.xlsx")
 write.xlsx(df_indicadores, file = "Output/enge_indicadores.xlsx")
 ```
 
