@@ -76,9 +76,9 @@ Primero, para el  periodo que va desde 1993 hasta 2004 existe un informe complet
 
 Segundo, a partir de 2004 comienza un periodo de publicaciones combinadas entre informes en .pdf (con desagregación sectorial) y cuadros en formato .xlsx (para los totales) que se mantendrá hasta 2011. Por un lado, los informes se publican con menor sistematicidad que en el periodo anterior, esto es, con una grado menor de orden y jerarquización de la información y menor riqueza de los datos. A pesar de lo anterior, se sostiene la misma desagregación sectorial. Por lo tanto, el pasaje de los cuadros fue, por un lado, el mismo que en el periodo 1993-2004, pero, por otro lado, se simplificó la utilización de los totales por el formato .xlsx. Algunos datos para 2004 se superponen con la publicación anterior, pero se decidió mantener a ambos para luego evaluar cual seleccionar para ese año.
 
-Por último, en 2012 comienza un periodo de mayor sistematización en el relevamiento que se reflejará en los informes publicados a partir de 2015-2016 que contienen los datos desde 2012. Desde entonces, los datos de los cuadros de los informes en .pdf se encuentran duplicados cada vez más en los cuadros de publicados en .xlsx. A partir de 2017, todos los cuadros publicados en los informes están también en .xlsx, facilitando con ellos la conformación de una tabla. Cabe destacar que a partir de 2012, aumenta el volumen de datos presentados y la desagregación sectorial, dando por resultado una mayor riqueza para el procesamiento pero, a la vez, complejizando la compatibilidad con las publicaciones de periodos anteriores. El pasaje a un archivo propio de este periodo de 10 años está subdividido en otros dos periodos: a) 2012-2016 en el que se utilizan de forma combinada los cuadros de los informes con los de los .xlsx y b) 2017-2022 en el que se toman exclusivamente los cuadros de los .xlsx.
+Por último, en 2012 comienza un periodo de mayor sistematización en el relevamiento que se reflejará en los informes publicados a partir de 2015-2016 que contienen los datos desde 2012. Desde entonces, los datos de los cuadros de los informes en .pdf se encuentran duplicados cada vez más en los cuadros de publicados en .xlsx. A partir de 2017, todos los cuadros publicados en los informes están también en .xlsx, facilitando con ellos la conformación de una tabla. Cabe destacar que a partir de 2012, aumenta el volumen de datos presentados y la desagregación sectorial, dando por resultado una mayor riqueza para el procesamiento pero, a la vez, complejizando la compatibilidad con las publicaciones de periodos anteriores. El pasaje a un archivo propio de este periodo de 10 años está subdividido en otros dos periodos: a) 2012-2016 en el que se utilizan de forma combinada los cuadros de los informes con los de los .xlsx y b) 2017-2024 en el que se toman exclusivamente los cuadros de los .xlsx.
 
-Los cuadros extraídos fueron volcados en un archivo propio .xlsx separado por hojas que corresponden a los distintos periodos: i) 1993-2004, ii) 2004-2011, iii) 2012-2016, iv) 2017-2022.
+Los cuadros extraídos fueron volcados en un archivo propio .xlsx separado por hojas que corresponden a los distintos periodos: i) 1993-2004, ii) 2004-2011, iii) 2012-2016, iv) 2017-2024.
 
 <div/>
 
@@ -89,7 +89,7 @@ Los cuadros extraídos fueron volcados en un archivo propio .xlsx separado por h
 archivo <- "Fuentes/0.resumen_macro_eco-finan_enge_1993-2023_Yacovone.v2.2.1.xlsx"
 
 # Leer las hojas del archivo
-sheets <- c("ENGE_1993a2004", "ENGE_2004a2011", "ENGE_2012a2016", "ENGE_2017a2023")
+sheets <- c("ENGE_1993a2004", "ENGE_2004a2011", "ENGE_2012a2016", "ENGE_2017a2024")
 list_of_dataframes <- lapply(1:4, function(i) openxlsx::read.xlsx(xlsxFile = archivo, sheet = i))
 
 # Asignar nombres a los dataframes
@@ -111,7 +111,7 @@ A la luz de lo expuesto anteriormente, se identifica el problema de unificar los
 <div class=text-justify> 
 Frente a dicho problema se recurrió primero a unificar, por medio de la función [**merge()**](https://r-coder.com/funcion-merge-r/#Full_outer_join), los dataframes con el mismo nivel de desagregación sectorial lo que permite una compatibilidad inmediata y completa.
 
-Por un lado, se unificaron los periodos i) y ii) dando lugar a un dataframe que cubre los años que van desde 1993 hasta 2011. Por otro lado, se unificaron los periodos iii) y iv), y con ello se logró abarcar desde 2012 hasta 2022.
+Por un lado, se unificaron los periodos i) y ii) dando lugar a un dataframe que cubre los años que van desde 1993 hasta 2011. Por otro lado, se unificaron los periodos iii) y iv), y con ello se logró abarcar desde 2012 hasta 2024.
 <div/> 
 
 ```{r merge, message=FALSE, warning=FALSE, include=FALSE, echo = TRUE}
@@ -123,12 +123,12 @@ ENGE_1993a2011 <- merge(x = ENGE_1993a2004,
                         all = T)
 
 ## Del 2012 en adelante se apmlía la desagregación de sectores
-ENGE_2012a2023 <- merge(x = ENGE_2012a2016,
-                        y = ENGE_2017a2023,
+ENGE_2012a2024 <- merge(x = ENGE_2012a2016,
+                        y = ENGE_2017a2024,
                         all = T)
 
 #Quito las que ya no uso
-rm(ENGE_1993a2004,ENGE_2004a2011,ENGE_2012a2016,ENGE_2017a2023)
+rm(ENGE_1993a2004,ENGE_2004a2011,ENGE_2012a2016,ENGE_2017a2024)
 
 ```
 
@@ -146,7 +146,7 @@ sectores %>% kbl(caption = "Cuadro 1. Desagregación sectorial por periodo") %>%
   kable_classic(full_width = F, html_font = "Cambria")
 ```
 <div class=text-justify> 
-Los **...** significan desagregaciones inexistentes en 1993-2011 que luego pasaron a ser consideradas en 2012-2022  dentro de los sectores antecedidos.
+Los **...** significan desagregaciones inexistentes en 1993-2011 que luego pasaron a ser consideradas en 2012-2024  dentro de los sectores antecedidos.
 
 Es así que se puede ver que dentro de lo que antes aparecía como **manufactura_resto**, a partir de 2012 se desagrega en:
 
@@ -169,7 +169,7 @@ Por último, se pierde la variable de **otras_subtotal** a partir de 2012 que no
 <div class=text-justify> 
 En segundo lugar, se procedió a unificar ambos dataframes (1993-2011 y 2012-2022) en una sola base por medio de la función bind_rows(). Con la unificación sucede que para ambos periodos van a aparecer sectores para los que no se disponen datos no porque no se hayan relevado sino porque dicha desagregación o bien no existía o bien ahora se encuentra con mayores niveles de desagregación. Por ejemplo, **otras_comercio** no aparecía en la desagregación original presentada por el INDEC para el periodo 1993-2011 y, sin embargo, en la base generada aparecerá virtualmente para dicho periodo pero imputada con un valor perdido (*NA*). De manera inversa, **otras_resto** no corresponde a la desagregación para 2012-2022 pero aparecerá en la  base también con NA.
 
-Para tener en claro lo anterior, se tiene en cuenta el **Cuadro 1**. Entonces, en la base conformada, la desagregación sectorial para cada periodo se la reconoce con id = 1, en el caso de  1993-2011, y con id = 2, en el caso de 2012-2022. 
+Para tener en claro lo anterior, se tiene en cuenta el **Cuadro 1**. Entonces, en la base conformada, la desagregación sectorial para cada periodo se la reconoce con id = 1, en el caso de  1993-2011, y con id = 2, en el caso de 2012-2024. 
 <div/> 
 
 ```{r bind_rows, message=FALSE, warning=FALSE, include=TRUE, echo = TRUE}
@@ -179,12 +179,12 @@ Para tener en claro lo anterior, se tiene en cuenta el **Cuadro 1**. Entonces, e
 
 help(bind_rows)
 
-base.ENGE_1993a2023.bind <- bind_rows(list(ENGE_1993a2011,ENGE_2012a2023), .id = "id")
+base.ENGE_1993a2024.bind <- bind_rows(list(ENGE_1993a2011,ENGE_2012a2024), .id = "id")
 ```
 
 ```{r duplicates}
 #ME fijo si hay observaciones repetidas
-base.ENGE_1993a2023.bind %>%
+base.ENGE_1993a2024.bind %>%
     group_by(anio,indicador) %>%  # Agrupar por id_individual
     filter(n() > 1)
 
@@ -194,27 +194,27 @@ base.ENGE_1993a2023.bind %>%
 
 ```{r export, message=FALSE, warning=FALSE, include=TRUE, echo = TRUE}
 #Exportar a excel la base única con todas los sectores como columnas con el identificador de compatibilidad sectorial (id)
-write.xlsx(base.ENGE_1993a2023.bind,"Output/base.ENGE_1993a2023_wider.id.xlsx")
+write.xlsx(base.ENGE_1993a2024.bind,"Output/base.ENGE_1993a2024_wider.id.xlsx")
 
 #Pivoteo
-base.ENGE_1993a2023.bind <- base.ENGE_1993a2023.bind %>% 
+base.ENGE_1993a2024.bind <- base.ENGE_1993a2024.bind %>% 
   pivot_longer(cols = 5:29,
                names_to = "sector",
                values_to = "valor")
 
 #Exportar a excel base pivoteada de todos los sectores en una sola columna con el identificador de compatibilidad sectorial (id)
-write.xlsx(base.ENGE_1993a2023.bind,"Output/base.ENGE_1993a2023_longer.id.xlsx")
+write.xlsx(base.ENGE_1993a2024.bind,"Output/base.ENGE_1993a2024_longer.id.xlsx")
 
 ```
 <div class=text-justify>
-El resultado de esta instancia inicial de trabajo es una base completa de la ENGE que abarca desde 1993 hasta 2022, tanto en su forma horizontal con los sectores en columnas separadas (base.ENGE_1993a2022_wider.id.xlsx) como en su forma vertical con todos los sectores en una sola columna (base.ENGE_1993a2022_longer.id.xlsx).
+El resultado de esta instancia inicial de trabajo es una base completa de la ENGE que abarca desde 1993 hasta 2022, tanto en su forma horizontal con los sectores en columnas separadas (base.ENGE_1993a2024_wider.id.xlsx) como en su forma vertical con todos los sectores en una sola columna (base.ENGE_1993a2024_longer.id.xlsx).
 
 Se espera procesar la base en el futuro para analizar posteriormente algunos indicadores seleccionados o generar nuevos a partir de los datos disponibles.
 <div/>
 
 # Unificacion de unidades
 ```{r}
-df_enge = base.ENGE_1993a2023.bind 
+df_enge = base.ENGE_1993a2024.bind 
 head(df_enge)
 ```
 ```{r}
@@ -341,7 +341,7 @@ df_enge %>%
 
 ```{r nuevos_indicadores, message=FALSE, warning=FALSE, echo = TRUE}
 #Reestructuro la base pivoteando los indicadores en columnas como variable separadas
-# base.ENGE_1993a2022.wider <- base.ENGE_1993a2022.bind %>% 
+# base.ENGE_1993a2024.wider <- base.ENGE_1993a2024.bind %>% 
 #   pivot_wider(names_from  = c(indicador,unidad),
 #               names_sep = "_",
 #               values_from = valor)
@@ -601,7 +601,7 @@ unique(df_indicadores$sector)
 
 ```
 
-```{r indicadores_1993-2023}
+```{r indicadores_1993-2024}
 df_indicadores.1 <-  df_pivot %>% 
   mutate(VAB.precios.basicos = VAB *((1 +impuestos.net.subsidios.en.VAB)/100),
          amortizaciones = amortizaciones.en.VAB*VAB,
