@@ -88,7 +88,7 @@ Los cuadros extraídos fueron volcados en un archivo propio .xlsx separado por h
 #Levanto las hojas del excel por separado correspondiente a las distintas presentaciones de la ENGE en cada periodo
 
 # Definir la ruta del archivo
-archivo <- "Fuentes/0.resumen_macro_eco-finan_enge_1993-2023_Yacovone.v2.2.1.xlsx"
+archivo <- "Fuentes/0.resumen_macro_eco-finan_enge_1993-2024_Yacovone.v1.xlsx"
 
 # Leer las hojas del archivo
 sheets <- c("ENGE_1993a2004", "ENGE_2004a2011", "ENGE_2012a2016", "ENGE_2017a2024")
@@ -141,7 +141,7 @@ A continuación se presenta el **Cuadro 1** en el que se resume el criterio de u
 ```{r sectores, message=FALSE, warning=FALSE, echo = TRUE}
 #Levanto la tabla con la desagregación sectorial
 sectores <- openxlsx::read.xlsx(
-  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2023_Yacovone.v2.2.1.xlsx", 
+  xlsxFile = "Fuentes/0.resumen_macro_eco-finan_enge_1993-2024_Yacovone.v1.xlsx", 
   sheet = 7)
 
 sectores %>% kbl(caption = "Cuadro 1. Desagregación sectorial por periodo") %>%
